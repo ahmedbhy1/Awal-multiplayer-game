@@ -149,6 +149,9 @@ static void write_server(SOCKET sock, const char *buffer)
       perror("send()");
       exit(errno);
    }
+
+
+
 }
 
 int main(int argc, char **argv)

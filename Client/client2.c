@@ -34,7 +34,7 @@ static void app(const char *address, const char *name)
 
    /* send our name */
    write_server(sock, name);
-
+   printf("write {commands} to get the full command list \n");
    while(1)
    {
       FD_ZERO(&rdfs);
@@ -50,7 +50,6 @@ static void app(const char *address, const char *name)
          perror("select()");
          exit(errno);
       }
-
       /* something from standard input : i.e keyboard */
       if(FD_ISSET(STDIN_FILENO, &rdfs))
       {
@@ -68,10 +67,6 @@ static void app(const char *address, const char *name)
                buffer[BUF_SIZE - 1] = 0;
             }
          }
-         printf("we write to the server!\n");
-         printf(buffer);
-         printf("\n");
-         //fflush(stdout);
          write_server(sock, buffer);
       }
       else if(FD_ISSET(sock, &rdfs))
@@ -157,8 +152,6 @@ static void write_server(SOCKET sock, const char *buffer)
 int main(int argc, char **argv)
    
 {
-   printf("init main\n");
-   
    if(argc < 2)
    {
       printf("Usage : %s [address] [pseudo]\n", argv[0]);

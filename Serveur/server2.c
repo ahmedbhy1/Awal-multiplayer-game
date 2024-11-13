@@ -125,7 +125,8 @@ static void app(void)
                   printf("%s",buffer);
                   printf("\n");
                   doCommend(buffer,client,clients,actual);
-                  send_message_to_all_clients(clients, client, actual, buffer, 0);
+                  //for the moment we wont send messages to the other users!
+                  //send_message_to_all_clients(clients, client, actual, buffer, 0);
                }
                break;
             }
@@ -183,10 +184,11 @@ static void getCommendList(const char *ch, Client client, Client *clients, int a
    if (strlen(message) + strlen("getPlayersList: 1\n") < BUF_SIZE) {
       strcat(message, "getPlayersList: 1\n");
    }
-   if (strlen(message) + strlen("getPlayersList: playerName\n") < BUF_SIZE) {
-      strcat(message, "getPlayersList: playerName\n");
+
+   // Safely append strings to the message
+   if (strlen(message) + strlen("request Starting Game With Player : 2 {player Name}\n") < BUF_SIZE) {
+      strcat(message, "request Starting Game With Player : 2 {player Name}\n");
    }
-   
    // Print message to the console (for debugging, if needed)
    printf("%s", message);
    
@@ -194,9 +196,45 @@ static void getCommendList(const char *ch, Client client, Client *clients, int a
    write_client(client.sock, message);
 }
 
+
+
+static void requestGameFromPlayer(Client *clients, Client sender, const char *playerName, int actual) {
+   int i = 0;
+   char message[BUF_SIZE];
+   message[0] = 0;
+   for(i = 0; i < actual; i++)
+   {
+      /* we don't send message to the sender */
+      if(sender.sock != clients[i].sock)
+      {
+         printf("%s\n",playerName);
+         if (strcmp(clients[i].name, playerName) == 0)
+         {
+            snprintf(message, BUF_SIZE, "The Player %s asks you for a game (y/n)!", sender.name);
+            printf("%s\n", message);
+
+            printf("%s\n", message);
+            // Assuming receiver is stored in clients[actual] based on the context
+            write_client(clients[i].sock, message);
+         }
+      }
+   }
+
+
+}
+
 static void doCommend(const char *ch,Client client ,Client *clients, int actual) {
-   if (strcmp(ch, "getPlayersList") == 0) {
+   if (strcmp(ch, "commands") == 0) {
+      getCommendList(clients,client, clients,actual);
+   }
+   if (strcmp(ch, "1") == 0) {
       sendPlayersNamesToClient(clients,client, actual);
+   }
+   if (strncmp(ch, "2 ", 2) == 0) {  // Check if the string starts with "2 "
+      char playerName[256];
+      sscanf(ch + 2, "%s", playerName);  // Extract player name from the string starting after "2 "
+      printf("we are requestingGameFromPlayer \n ");
+      requestGameFromPlayer(clients,client,playerName,actual);
    }
 }
 

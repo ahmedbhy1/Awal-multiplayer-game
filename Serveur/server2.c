@@ -6,6 +6,82 @@
 #include "server2.h"
 #include "client2.h"
 
+
+#define MAX_GAMES 255
+#define MAX_OBSERVERS 10
+#define MAX_GAMETABLES 10
+#define MAX_GAMES 10
+
+struct House
+{
+   int numberOfSeeds;
+};
+
+struct GameTable {
+   int index;
+   struct House table[6][2];
+   int seedsWonByP1;
+   int seedsWonByP2;
+};
+
+struct Game {
+   int id;
+   Client player1;
+   Client player2;
+   Client observers[MAX_OBSERVERS];
+   Client winner;
+   struct GameTable gameTables[MAX_GAMETABLES];
+   int lastGameTableIndex;
+};
+
+int indexOfGame = 0;
+struct Game listOfGames[MAX_GAMES];
+
+void addGameTable(int indexOfGame, int lastGameTableIndex) {
+   printf("we are adding Game Table \n");
+   for (int i = 0; i < 6; i++) {
+      for (int j = 0; j < 2; j++) {
+         listOfGames[indexOfGame].gameTables[lastGameTableIndex].table[i][j].numberOfSeeds = 4;
+      }
+   }
+   listOfGames[indexOfGame].lastGameTableIndex +=1;
+}
+
+
+void showGameTable(int indexOfGame, int indexOfTableGame) {
+   printf("we are showing Game Table \n");
+   char GameTableMessage[256] = ""; 
+   char temp[10];  
+   for (int i = 0; i < 6; i++) {
+      for (int j = 0; j < 2; j++) {
+         sprintf(temp, "%d", listOfGames[indexOfGame].gameTables[indexOfTableGame].table[i][j].numberOfSeeds);
+         strcat(GameTableMessage, temp);
+      }
+      strcat(GameTableMessage, "\n");
+   }
+
+   printf("%s \n", GameTableMessage);
+   printf("%s \n", listOfGames[indexOfGame].player1.name);
+   printf("%s \n", listOfGames[indexOfGame].gameTables[indexOfTableGame].seedsWonByP1);
+   printf("%s \n", listOfGames[indexOfGame].player2.name);
+   printf("%s \n", listOfGames[indexOfGame].gameTables[indexOfTableGame].seedsWonByP2);
+
+
+}
+
+
+struct void initiateGame(Client player1,Client player2){
+   printf("we are initiating Game \n");
+   listOfGames[indexOfGame].id = indexOfGame;
+   listOfGames[indexOfGame].player1 = player1;
+   listOfGames[indexOfGame].player2 = player2;
+   listOfGames[indexOfGame].lastGameTableIndex = 0;
+   addGameTable(indexOfGame,0);
+   showGameTable(indexOfGame,0);
+   indexOfGame = indexOfGame + 1;
+}
+
+
 static void init(void)
 {
 #ifdef WIN32
@@ -139,7 +215,6 @@ static void app(void)
 }
 
 
-
 static void clear_clients(Client *clients, int actual)
 {
    int i = 0;
@@ -198,10 +273,11 @@ static void getCommendList(const char *ch, Client client, Client *clients, int a
 
 
 
-static void requestGameFromPlayer(Client *clients, Client sender, const char *playerName, int actual) {
+static void requestGameFromPlayer(Client *clients, Client sender, const char *playerName, int actual,const char *ch) {
    int i = 0;
    char message[BUF_SIZE];
    message[0] = 0;
+   char buffer[BUF_SIZE];
    for(i = 0; i < actual; i++)
    {
       /* we don't send message to the sender */
@@ -213,12 +289,18 @@ static void requestGameFromPlayer(Client *clients, Client sender, const char *pl
             snprintf(message, BUF_SIZE, "The Player %s asks you for a game (y/n)!", sender.name);
             printf("%s\n", message);
 
-            printf("%s\n", message);
             // Assuming receiver is stored in clients[actual] based on the context
             write_client(clients[i].sock, message);
+            if (strcmp(ch,"y")==0){
+               initiateGame(sender,clients[i]);
+            }
+            
          }
       }
    }
+}
+
+static void startGame(){
 
 
 }
@@ -230,11 +312,11 @@ static void doCommend(const char *ch,Client client ,Client *clients, int actual)
    if (strcmp(ch, "1") == 0) {
       sendPlayersNamesToClient(clients,client, actual);
    }
-   if (strncmp(ch, "2 ", 2) == 0) {  // Check if the string starts with "2 "
+   if (strncmp(ch, "2 ", 2) == 0 || strcmp(ch, "y")) {  // Check if the string starts with "2 "
       char playerName[256];
       sscanf(ch + 2, "%s", playerName);  // Extract player name from the string starting after "2 "
       printf("we are requestingGameFromPlayer \n ");
-      requestGameFromPlayer(clients,client,playerName,actual);
+      requestGameFromPlayer(clients,client,playerName,actual,ch);
    }
 }
 

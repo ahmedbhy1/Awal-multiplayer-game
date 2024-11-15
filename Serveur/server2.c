@@ -6,6 +6,90 @@
 #include "server2.h"
 #include "client2.h"
 
+
+#define MAX_GAMES 255
+#define MAX_OBSERVERS 10
+#define MAX_GAMETABLES 10
+#define MAX_GAMES 10
+
+struct House
+{
+   int numberOfSeeds;
+};
+
+struct GameTable {
+   int index;
+   //  the first 6 Houses Are for PlayerOne
+   //  the second 6 Houses Are for the PlayerTwo
+   struct House table[12];
+   int seedsWonByP1;
+   int seedsWonByP2;
+};
+
+struct Game {
+   int id;
+   Client player1;
+   Client player2;
+   Client observers[MAX_OBSERVERS];
+   int indexLastObserver;
+   Client winner;
+   struct GameTable gameTables[MAX_GAMETABLES];
+   int lastGameTableIndex;
+};
+
+int indexOfGame = 0;
+struct Game listOfGames[MAX_GAMES];
+
+void addGameTable(int indexOfGame, int indexOfTableGame) {
+   printf("we are adding Game Table \n");
+   for (int i = 0; i < 12; i++) {
+      listOfGames[indexOfGame].gameTables[indexOfTableGame].table[i].numberOfSeeds = 4;
+   }
+   listOfGames[indexOfGame].gameTables[indexOfTableGame].seedsWonByP1 = 0;
+   listOfGames[indexOfGame].gameTables[indexOfTableGame].seedsWonByP2 = 0;
+   listOfGames[indexOfGame].lastGameTableIndex +=1;
+}
+
+
+void showGameTable(int indexOfGame, int indexOfTableGame) {
+   printf("we are showing Game Table \n");
+   char GameTableMessage[256] = ""; 
+   char temp[10];  
+   for (int i = 0; i < 12; i++) {
+         sprintf(temp, "%d", listOfGames[indexOfGame].gameTables[indexOfTableGame].table[i].numberOfSeeds);
+         strcat(GameTableMessage, temp);
+      if(i%6 == 0){
+         strcat("\n" ,GameTableMessage);
+      }
+         
+   }
+
+   printf("%s \n", GameTableMessage);
+   printf("%s \n", listOfGames[indexOfGame].player1.name);
+   printf("%s \n", listOfGames[indexOfGame].gameTables[indexOfTableGame].seedsWonByP1);
+   printf("%s \n", listOfGames[indexOfGame].player2.name);
+   printf("%s \n", listOfGames[indexOfGame].gameTables[indexOfTableGame].seedsWonByP2);
+
+
+}
+
+static void addGameObserver(Client observer){
+   listOfGames[indexOfGame].observers[listOfGames[indexOfGame].indexLastObserver] = observer;
+   listOfGames[indexOfGame].indexLastObserver+=1;
+}
+
+static void initiateGame(Client player1,Client player2){
+   printf("we are initiating Game \n");
+   listOfGames[indexOfGame].id = indexOfGame;
+   listOfGames[indexOfGame].player1 = player1;
+   listOfGames[indexOfGame].player2 = player2;
+   listOfGames[indexOfGame].lastGameTableIndex = 0;
+   addGameTable(indexOfGame,0);
+   showGameTable(indexOfGame,0);
+   indexOfGame = indexOfGame + 1;
+}
+
+
 static void init(void)
 {
 #ifdef WIN32
@@ -122,8 +206,6 @@ static void app(void)
                }
                else
                {
-                  printf("%s",buffer);
-                  printf("\n");
                   doCommend(buffer,client,clients,actual);
                   //for the moment we wont send messages to the other users!
                   //send_message_to_all_clients(clients, client, actual, buffer, 0);
@@ -137,7 +219,6 @@ static void app(void)
    clear_clients(clients, actual);
    end_connection(sock);
 }
-
 
 
 static void clear_clients(Client *clients, int actual)
@@ -173,7 +254,6 @@ static void sendPlayersNamesToClient(Client *clients, Client receiver, int actua
       }
    }
    
-   printf("%s",message,"\n");
    write_client(receiver.sock, message);
 }
 
@@ -190,7 +270,7 @@ static void getCommendList(const char *ch, Client client, Client *clients, int a
       strcat(message, "request Starting Game With Player : 2 {player Name}\n");
    }
    // Print message to the console (for debugging, if needed)
-   printf("%s", message);
+   // printf("%s \n", message);
    
    // Send the message to the client (assuming client.sock is the socket)
    write_client(client.sock, message);
@@ -198,43 +278,56 @@ static void getCommendList(const char *ch, Client client, Client *clients, int a
 
 
 
-static void requestGameFromPlayer(Client *clients, Client sender, const char *playerName, int actual) {
+static void requestGameFromPlayer(Client *clients, Client sender, const char *playerName, int actual,const char *ch) {
    int i = 0;
    char message[BUF_SIZE];
    message[0] = 0;
+   char buffer[BUF_SIZE];
    for(i = 0; i < actual; i++)
    {
       /* we don't send message to the sender */
       if(sender.sock != clients[i].sock)
       {
-         printf("%s\n",playerName);
          if (strcmp(clients[i].name, playerName) == 0)
          {
-            snprintf(message, BUF_SIZE, "The Player %s asks you for a game (y/n)!", sender.name);
-            printf("%s\n", message);
+            if (strcmp(ch,"")==0){
+               snprintf(message, BUF_SIZE, "The Player %s asks you for a game (y/n)!", sender.name);
+            }
 
-            printf("%s\n", message);
             // Assuming receiver is stored in clients[actual] based on the context
             write_client(clients[i].sock, message);
+            if (strcmp(ch,"y")==0){
+               initiateGame(sender,clients[i]);
+            }
+            
          }
       }
    }
+}
+
+static void startGame(){
 
 
 }
 
 static void doCommend(const char *ch,Client client ,Client *clients, int actual) {
+   printf("are we in doCommend ! ");
+   fflush(stdout);
    if (strcmp(ch, "commands") == 0) {
       getCommendList(clients,client, clients,actual);
    }
    if (strcmp(ch, "1") == 0) {
       sendPlayersNamesToClient(clients,client, actual);
    }
-   if (strncmp(ch, "2 ", 2) == 0) {  // Check if the string starts with "2 "
+   if (strncmp(ch, "2 ", 2) == 0 || strncmp(ch, "y ", 2)) {  // Check if the string starts with "2 " or with y
       char playerName[256];
       sscanf(ch + 2, "%s", playerName);  // Extract player name from the string starting after "2 "
-      printf("we are requestingGameFromPlayer \n ");
-      requestGameFromPlayer(clients,client,playerName,actual);
+      if (strncmp(ch, "y ", 2)){
+         requestGameFromPlayer(clients,client,playerName,actual,"y");
+      }
+      else{
+         requestGameFromPlayer(clients,client,playerName,actual,"");
+      }
    }
 }
 

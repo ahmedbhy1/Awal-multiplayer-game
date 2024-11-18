@@ -19,7 +19,7 @@ struct GameTable {
    int index;
    //  the first 6 Houses Are for PlayerOne
    //  the second 6 Houses Are for the PlayerTwo
-   struct House table[12];
+   struct House table[2][6];
    int seedsWonByP1;
    int seedsWonByP2;
 };
@@ -40,8 +40,10 @@ struct Game listOfGames[MAX_GAMES];
 
 void addGameTable(int indexOfGame, int indexOfTableGame) {
    printf("we are adding Game Table \n");
-   for (int i = 0; i < 12; i++) {
-      listOfGames[indexOfGame].gameTables[indexOfTableGame].table[i].numberOfSeeds = 4;
+   for (int i = 0; i < 2; i++) {
+      for(int j = 0;j < 6;j++){
+         listOfGames[indexOfGame].gameTables[indexOfTableGame].table[i][j].numberOfSeeds = 4;
+      }
    }
    listOfGames[indexOfGame].gameTables[indexOfTableGame].seedsWonByP1 = 0;
    listOfGames[indexOfGame].gameTables[indexOfTableGame].seedsWonByP2 = 0;
@@ -51,17 +53,18 @@ void addGameTable(int indexOfGame, int indexOfTableGame) {
 void showGameTable(int indexOfGame, int indexOfTableGame) {
     char message[1024] = ""; // Ensure the buffer is large enough for the full message
     char temp[256]; // Temporary buffer for individual parts of the message
-    
-    strcat(message, "we are showing Game Table\n");
+
+    strcat(message, "we are showing Game Table \n");
     
     char GameTableMessage[256] = "";
-    for (int i = 0; i < 12; i++) {
-        if (i && i % 6 == 0) {
-            strcat(GameTableMessage, "\n");
-        }
-        sprintf(temp, "%d", listOfGames[indexOfGame].gameTables[indexOfTableGame].table[i].numberOfSeeds);
+    for (int i = 0; i < 2; i++) {
+      for (int j = 0; j < 6;j++) {
+        sprintf(temp, "%d", listOfGames[indexOfGame].gameTables[indexOfTableGame].table[i][j].numberOfSeeds);
         strcat(GameTableMessage, temp);
+      }
+      strcat(GameTableMessage, "\n"); 
     }
+
     strcat(message, GameTableMessage);
     strcat(message, "\n");
     
@@ -128,10 +131,34 @@ static int isGameOver(int indexOfGame){
 static Client winnerPlayer(int indexOfGame){
 
 }
-
-static void playGameTurn(Client player,int indexOfPlayer, int indexOfGame,int choosenDigit){
-   printf("shoose a number from 1 to 6 in your zone");
-
-}
 */
+static void playGameTurn(Client player,int indexOfPlayer, int indexOfGame,int choosenDigit){
+   // index of the player represants 0 or 1 -> the side in wich the player play in !
+   int nomberOfSeeds = listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].table[choosenDigit][indexOfPlayer].numberOfSeeds;
+   listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].table[choosenDigit][indexOfPlayer].numberOfSeeds = 0;
+   int count = nomberOfSeeds;
+   int i = indexOfPlayer;
+   int j = choosenDigit;
+   //distribute the taken seeds to the next houses
+   while(count > 0){
+      if (i == 0){
+         j-=1;
+         if (j<0){
+            j+=1;
+            i=1;
+         }
+      }
+      if ( i==1 ){
+         j+=1;
+         if (j>=6){
+            j-=1;
+            i=0;
+         }
+      }
+
+      listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].table[i][j].numberOfSeeds+=1;
+      count-=1;
+   }
+   showGameTable(indexOfGame,listOfGames[indexOfGame].lastGameTableIndex);
+}
 

@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <string.h>
 
+#include "playerState.h"
 #include "server2.h"
 #include "common.c"
 #include "game.h"
@@ -228,7 +229,8 @@ static void requestGameFromPlayer(Client *clients, Client sender, const char *pl
                //startGame(sender,clients[i],index);
             }
             if (strcmp(ch,"p")==0){
-               //playGameTurn(sender,)
+               printf("%d \n",clients[i].name);
+               //playGameTurn(sender,);
                //startGame(sender,clients[i]);
             }
             
@@ -346,17 +348,48 @@ static int read_client(SOCKET sock, char *buffer)
 }
 
 
+static void init_PlayersState(){
+    init_table();
+
+    // Create some State structs
+    State state1 = {0, 0 , 0 ,"alii"};
+    State state2 = {0, 0 , 1 ,"ahmed"};
+
+    // Insert into the hash table
+    insert("ahmed", state1);
+    insert("alii", state2);
+
+    // Search in the hash table
+    State *result = search("ahmed");
+    if (result) {
+        printf("Found: ID=%d, currentIndexOfTheGame=%d\n, OpponantName=%s\n", result->state, result->currentIndexOfGame, result->opponentName);
+    } else {
+        printf("Key not found\n");
+    }
+
+    result = search("alii");
+    if (result) {
+        printf("Found: ID=%d, currentIndexOfTheGame=%d\n, OpponantName=%s\n", result->state, result->currentIndexOfGame, result->opponentName);
+    } else {
+        printf("Key not found\n");
+    }
+}
+
+static void end_PlayersState(){
+   // Clean up
+   free_table();
+}
+
 
 int main(int argc, char **argv)
 {
    init();
 
+   init_table();
+   
    app();
 
    end();
 
    return EXIT_SUCCESS;
 }
-
-
-

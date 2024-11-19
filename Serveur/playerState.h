@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "server2.h"
+#include <stdbool.h>
 #define TABLE_SIZE 100
 
 // Define the State structure
@@ -12,6 +13,7 @@ typedef struct State {
     int currentIndexOfGame ;
     int playerIndex ; // 0 or 1
     char* opponentName ;
+    bool isPlayerTurn;
 } State;
 
 // Define the hash table entry
@@ -29,6 +31,7 @@ void init_table();
 void insert(const char *key, State value);
 State* search(const char *key);
 void free_table();
-HashNode** get_playersState();
+void display_players();
+int modify_player_state(const char *playerName, int *newState, int *newIndexOfGame, int *newPlayerIndex, const char *newOpponentName,bool *newIsPlayerTurn);
 
 #endif

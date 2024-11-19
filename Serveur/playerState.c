@@ -7,10 +7,11 @@
 
 // Define the State structure
 typedef struct State {
-    int state; // 0 player is waiting | 1 player is requesting a game | 2 player is playing | 3 player is watching
+    int state; // 0 player is waiting | 1 player is requesting a game | 2 player is requested a game | 3 player is playing | 4 player is watching
     int currentIndexOfGame ;
     int playerIndex ; // 0 or 1
     char* opponentName ;
+    bool isPlayerTurn;
 } State;
 
 // Define the hash table entry
@@ -63,10 +64,11 @@ State *search(const char *playerName) {
     return NULL; // playerName not found
 }
 
-int modify_player_state(const char *playerName, int *newState, int *newIndexOfGame, int *newPlayerIndex, const char *newOpponentName) {
+int modify_player_state(const char *playerName, int *newState, int *newIndexOfGame, int *newPlayerIndex, const char *newOpponentName,bool *newIsPlayerTurn) {
     // Search for the player in the hash table
+    printf("we are in modify_player_state! \n");
     State *playerState = search(playerName);
-
+    printf("we can find the player_state! %d\n",playerState->state);
     if (playerState == NULL) {
         printf("Player %s not found.\n", playerName);
         return 0; // Player not found
@@ -74,25 +76,57 @@ int modify_player_state(const char *playerName, int *newState, int *newIndexOfGa
 
     // Modify the state only if a new value is provided
     if (newState != NULL) {
-        playerState->state = *newState;
+        playerState->state = newState;
     }
+    printf("we passed the newState! %d\n" , newState);
     if (newIndexOfGame != NULL) {
-        playerState->currentIndexOfGame = *newIndexOfGame;
+        playerState->currentIndexOfGame = newIndexOfGame;
     }
+    printf("we passed the newIndexOfGame! %d\n",newIndexOfGame);
     if (newPlayerIndex != NULL) {
-        playerState->playerIndex = *newPlayerIndex;
+        playerState->playerIndex = newPlayerIndex;
     }
+    printf("we passed the isPlayerTurn! %d\n",newPlayerIndex);
+    if (newIsPlayerTurn != NULL) {
+        playerState->isPlayerTurn = newIsPlayerTurn;
+    }
+    printf(" Is Player Turn: %s\n", newIsPlayerTurn ? "true" : "false");
+
     if (newOpponentName != NULL) {
         // Free the old opponent name if it exists
-        if (playerState->opponentName != NULL) {
-            free(playerState->opponentName);
-        }
-        // Allocate memory for the new opponent's name
-        playerState->opponentName = strdup(newOpponentName);
+        playerState->opponentName = newOpponentName;
     }
 
     printf("Player %s's state has been modified.\n", playerName);
     return 1; // Success
+}
+
+void display_players() {
+    printf("List of users and their states:\n");
+    printf("=================================\n");
+
+    for (int i = 0; i < TABLE_SIZE; i++) {
+        HashNode *current = playersState[i];
+        while (current) {
+            // Print player details
+            printf("Player Name: %s\n", current->playerName);
+            printf("  State: %d (%s)\n", 
+                   current->value.state,
+                   (current->value.state == 0 ? "Waiting" :
+                   current->value.state == 1 ? "Requesting a game" :
+                   current->value.state == 2 ? "Requested a game" :
+                   current->value.state == 3 ? "Playing" :
+                   current->value.state == 4 ? "Watching" : "Unknown"));
+            printf("  Current Game Index: %d\n", current->value.currentIndexOfGame);
+            printf("  Player Index: %d\n", current->value.playerIndex);
+            printf(" Is Player Turn: %s\n", current->value.isPlayerTurn ? "true" : "false");
+            printf("  Opponent Name: %s\n", 
+                   current->value.opponentName ? current->value.opponentName : "None");
+            printf("---------------------------------\n");
+
+            current = current->next;
+        }
+    }
 }
 
 // Free the hash table

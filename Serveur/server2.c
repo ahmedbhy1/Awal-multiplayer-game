@@ -108,8 +108,13 @@ static void app(void)
          clients[actual] = c;
          actual++;
          
+         if (!search(c.name)){
+            State state = {0, 0 , 0 ,"",false};
+            insert(c.name,state);
+         }
+
          print_client_names(clients, actual);
-         
+         display_players();
       }
       else
       {
@@ -217,6 +222,10 @@ static void requestGameFromPlayer(Client *clients, Client sender, const char *pl
          if (strcmp(clients[i].name, playerName) == 0)
          {
             if (strcmp(ch,"")==0){
+               printf("are we blocked here ! \n");
+               modify_player_state(sender.name,1,0,0,playerName,NULL);
+               modify_player_state(playerName,2,0,1,sender.name,NULL);
+               printf("we are n ! \n");
                snprintf(message, BUF_SIZE, "The Player %s asks you for a game (y/n)!", sender.name);
             }
 
@@ -224,14 +233,10 @@ static void requestGameFromPlayer(Client *clients, Client sender, const char *pl
             write_client(clients[i].sock, message);
             if (strcmp(ch,"y")==0){
                int index = initiateGame(sender,clients[i]);
+               modify_player_state(sender.name,3,index,NULL,NULL,false);
+               modify_player_state(playerName,3,index,NULL,NULL,true);
                printf("index of the created game! ");
                printf("%d \n",index);
-               //startGame(sender,clients[i],index);
-            }
-            if (strcmp(ch,"p")==0){
-               printf("%d \n",clients[i].name);
-               //playGameTurn(sender,);
-               //startGame(sender,clients[i]);
             }
             
          }
@@ -250,6 +255,29 @@ static void doCommend(const char *ch,Client client ,Client *clients, int actual)
    if (strcmp(ch, "1") == 0) {
       sendPlayersNamesToClient(clients,client, actual);
    }
+   if (strcmp(ch,"s") == 0){
+      display_players();
+   }
+   if (strncmp(ch, "p ", 2) == 0) {
+      printf("we are here p\n");
+
+      int indexToPlay;
+      // Try to extract an integer from the string starting at position 2
+      if (sscanf(ch + 2, "%d", &indexToPlay) == 1 && indexToPlay >= 0 && indexToPlay <= 6) {
+         printf("Index to play extracted: %d\n", indexToPlay);
+         State *state = search(client.name);
+         if (state->isPlayerTurn){
+            printf("playGameTurn params client name; index player; current index of game, indexToPlay :%s,%d,%d,%d \n",client.name,state->playerIndex,state->currentIndexOfGame,indexToPlay);
+            playGameTurn(client,state->playerIndex,state->currentIndexOfGame,indexToPlay);
+            printf("%s its your turn \n",state->opponentName);
+            modify_player_state(client.name,NULL,NULL,NULL,NULL,false);
+            modify_player_state(state->opponentName,NULL,NULL,NULL,NULL,true);
+            
+         }
+      } else {
+         printf("Invalid index or input format. Ensure the index is between 0 and 6.\n");
+      }
+   }
    if (strncmp(ch, "2 ", 2) == 0 || strncmp(ch, "y ", 2) == 0) {  // Check if the string starts with "2 " or with y
       char playerName[256];
       sscanf(ch + 2, "%s", playerName);  // Extract player name from the string starting after "2 "
@@ -262,6 +290,7 @@ static void doCommend(const char *ch,Client client ,Client *clients, int actual)
          requestGameFromPlayer(clients,client,playerName,actual,"");
       }
    }
+
 }
 
 
@@ -352,8 +381,8 @@ static void init_PlayersState(){
     init_table();
 
     // Create some State structs
-    State state1 = {0, 0 , 0 ,"alii"};
-    State state2 = {0, 0 , 1 ,"ahmed"};
+    State state1 = {0, 0 , 0 ,"alii",false};
+    State state2 = {0, 0 , 1 ,"ahmed",true};
 
     // Insert into the hash table
     insert("ahmed", state1);
@@ -375,11 +404,6 @@ static void init_PlayersState(){
     }
 }
 
-static void end_PlayersState(){
-   // Clean up
-   free_table();
-}
-
 
 int main(int argc, char **argv)
 {
@@ -388,6 +412,8 @@ int main(int argc, char **argv)
    init_table();
    
    app();
+
+   free_table();
 
    end();
 

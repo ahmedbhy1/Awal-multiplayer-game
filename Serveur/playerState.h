@@ -32,6 +32,6 @@ void insert(const char *key, State value);
 State* search(const char *key);
 void free_table();
 void display_players();
-int modify_player_state(const char *playerName, int *newState, int *newIndexOfGame, int *newPlayerIndex, const char *newOpponentName,bool *newIsPlayerTurn);
+int modify_player_state(const char *playerName, int *newState, int *newIndexOfGame, int *newPlayerIndex, const char *newOpponentName,bool newIsPlayerTurn);
 
 #endif

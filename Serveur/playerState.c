@@ -64,9 +64,8 @@ State *search(const char *playerName) {
     return NULL; // playerName not found
 }
 
-int modify_player_state(const char *playerName, int *newState, int *newIndexOfGame, int *newPlayerIndex, const char *newOpponentName,bool *newIsPlayerTurn) {
+int modify_player_state(const char *playerName, int *newState, int *newIndexOfGame, int *newPlayerIndex, char *newOpponentName,bool newIsPlayerTurn) {
     // Search for the player in the hash table
-    printf("we are in modify_player_state! \n");
     State *playerState = search(playerName);
     printf("we can find the player_state! %d\n",playerState->state);
     if (playerState == NULL) {
@@ -78,23 +77,20 @@ int modify_player_state(const char *playerName, int *newState, int *newIndexOfGa
     if (newState != NULL) {
         playerState->state = newState;
     }
-    printf("we passed the newState! %d\n" , newState);
     if (newIndexOfGame != NULL) {
         playerState->currentIndexOfGame = newIndexOfGame;
     }
-    printf("we passed the newIndexOfGame! %d\n",newIndexOfGame);
     if (newPlayerIndex != NULL) {
         playerState->playerIndex = newPlayerIndex;
     }
-    printf("we passed the isPlayerTurn! %d\n",newPlayerIndex);
-    if (newIsPlayerTurn != NULL) {
-        playerState->isPlayerTurn = newIsPlayerTurn;
-    }
-    printf(" Is Player Turn: %s\n", newIsPlayerTurn ? "true" : "false");
+    printf("this is the new player %s turn %d \n",playerName,newIsPlayerTurn);
+    playerState->isPlayerTurn = newIsPlayerTurn;
 
     if (newOpponentName != NULL) {
-        // Free the old opponent name if it exists
-        playerState->opponentName = newOpponentName;
+        // Free the existing opponent name if it was dynamically allocated
+        free(playerState->opponentName);
+        // Allocate new memory and copy the string
+        playerState->opponentName = strdup(newOpponentName);
     }
 
     printf("Player %s's state has been modified.\n", playerName);

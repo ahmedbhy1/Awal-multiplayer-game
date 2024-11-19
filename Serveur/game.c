@@ -47,7 +47,7 @@ void addGameTable(int indexOfGame, int indexOfTableGame) {
    }
    listOfGames[indexOfGame].gameTables[indexOfTableGame].seedsWonByP1 = 0;
    listOfGames[indexOfGame].gameTables[indexOfTableGame].seedsWonByP2 = 0;
-   listOfGames[indexOfGame].lastGameTableIndex +=1;
+   //listOfGames[indexOfGame].lastGameTableIndex +=1;
 }
 
 void showGameTable(int indexOfGame, int indexOfTableGame) {
@@ -111,6 +111,7 @@ static void startGame(Client player1,Client player2, int indexOfGame,int choosen
 int initiateGame(Client player1,Client player2){
    printf("we are initiating Game \n");
    printf("indexOfGame \n");
+   indexOfGame = indexOfGame + 1;
    printf("%d \n",indexOfGame);
    listOfGames[indexOfGame].id = indexOfGame;
    listOfGames[indexOfGame].player1 = player1;
@@ -118,8 +119,7 @@ int initiateGame(Client player1,Client player2){
    listOfGames[indexOfGame].lastGameTableIndex = 0;
    addGameTable(indexOfGame,0);
    showGameTable(indexOfGame,0);
-   indexOfGame = indexOfGame + 1;
-   return indexOfGame - 1;
+   return indexOfGame ;
 }
 
 /*
@@ -132,11 +132,15 @@ static Client winnerPlayer(int indexOfGame){
 
 }
 */
-static void playGameTurn(Client player,int indexOfPlayer, int indexOfGame,int choosenDigit){
+void playGameTurn(Client player,int indexOfPlayer, int indexOfGame,int choosenDigit){
+   // show game at first and at second
+   showGameTable(indexOfGame,listOfGames[indexOfGame].lastGameTableIndex);
    // index of the player represants 0 or 1 -> the side in wich the player play in !
    int nomberOfSeeds = listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].table[choosenDigit][indexOfPlayer].numberOfSeeds;
-   listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].table[choosenDigit][indexOfPlayer].numberOfSeeds = 0;
    int count = nomberOfSeeds;
+   printf("nomber of collected seeds %d \n",count);
+
+   listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].table[choosenDigit][indexOfPlayer].numberOfSeeds = 0;
    int i = indexOfPlayer;
    int j = choosenDigit;
    //distribute the taken seeds to the next houses
@@ -157,6 +161,7 @@ static void playGameTurn(Client player,int indexOfPlayer, int indexOfGame,int ch
       }
 
       listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].table[i][j].numberOfSeeds+=1;
+      printf("nomber of seeds on t[i][j] %d \n",listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].table[i][j].numberOfSeeds);
       count-=1;
    }
    showGameTable(indexOfGame,listOfGames[indexOfGame].lastGameTableIndex);

@@ -157,12 +157,12 @@ void playGameTurn(Client player,int indexOfPlayer, int indexOfGame,int choosenDi
    count = nomberOfSeeds;
    int nbSeeds=0;
    int nbColledSeeds=0;
-   
+   bool areAllOfThemInTheRange = true;
    
     //collecting seeds
    while(count > 0){
       
-      printf("(i,j)=(%d,%d)",i,j);
+      printf("collecting seeds (i,j)=(%d,%d)",i,j);
 
 
       nbSeeds = listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].table[i][j].numberOfSeeds ;
@@ -187,6 +187,7 @@ void playGameTurn(Client player,int indexOfPlayer, int indexOfGame,int choosenDi
          count-=1;
       }
       else{ 
+         areAllOfThemInTheRange = false;
          if (indexOfPlayer == 0){
             printf("is player1 eating the seeds ? %d \n",nbColledSeeds);
             listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].seedsWonByP1+=nbColledSeeds;
@@ -198,7 +199,20 @@ void playGameTurn(Client player,int indexOfPlayer, int indexOfGame,int choosenDi
          break;
       }
    }
-   
+   printf("we want to see areAllOfThemInTheRange: %d \n",areAllOfThemInTheRange);
+   printf("we want to see nbColledSeeds: %d \n",nbColledSeeds);
+   if (areAllOfThemInTheRange == true){
+      if (indexOfPlayer == 0){
+         printf("is player1 eating the seeds ? %d \n",nbColledSeeds);
+         listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].seedsWonByP1+=nbColledSeeds;
+      }
+      else{
+         printf("is player2 eating the seeds ? %d \n",nbColledSeeds);
+         listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].seedsWonByP2+=nbColledSeeds;
+      }
+   }
+
+
    
    if(!isGameOver()){
       showGameTable(indexOfGame,listOfGames[indexOfGame].lastGameTableIndex,opponentName);

@@ -230,7 +230,7 @@ static void requestGameFromPlayer(Client *clients, Client sender, const char *pl
             // Assuming receiver is stored in clients[actual] based on the context
             write_client(clients[i].sock, message);
             if (strcmp(ch,"y")==0){
-               int index = initiateGame(sender,clients[i],playerName);
+               int index = initiateGame(clients[i],sender,playerName);
                modify_player_state(sender.name,3,index,NULL,NULL,false);
                modify_player_state(playerName,3,index,NULL,NULL,true);
                printf("index of the created game! ");
@@ -265,8 +265,8 @@ static void doCommend(const char *ch,Client client ,Client *clients, int actual)
          printf("Index to play extracted: %d\n", indexToPlay);
          State *state = search(client.name);
          if (state->isPlayerTurn){
-            printf("playGameTurn params client name; index player; current index of game, indexToPlay :%s,%d,%d,%d \n",client.name,state->playerIndex,state->currentIndexOfGame,indexToPlay);
-            playGameTurn(client,state->playerIndex,state->currentIndexOfGame,indexToPlay,state->opponentName);
+            //printf("playGameTurn params client name; index player; current index of game, indexToPlay :%s,%d,%d,%d \n",client.name,state->playerIndex,state->currentIndexOfGame,indexToPlay);
+            playGameTurn(client,state->playerIndex,state->currentIndexOfGame,indexToPlay-1,state->opponentName);
             printf("%s is the previous player turn \n",client.name);
             printf("%s its your turn \n",state->opponentName);
             modify_player_state(client.name,NULL,NULL,NULL,NULL,false);

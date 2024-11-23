@@ -9,7 +9,7 @@
 #define MAX_GAMES 10
 #include "game.h"
 #include "common.c"
-
+#include <stdbool.h>
 struct House
 {
    int numberOfSeeds;
@@ -57,27 +57,24 @@ void showGameTable(int indexOfGame, int indexOfTableGame,char* opponentName) {
     strcat(message, "we are showing Game Table \n");
     
     char GameTableMessage[256] = "";
-    for (int i = 0; i < 2; i++) {
-      for (int j = 0; j < 6;j++) {
-        sprintf(temp, "%d", listOfGames[indexOfGame].gameTables[indexOfTableGame].table[i][j].numberOfSeeds);
-        strcat(GameTableMessage, temp);
+      for (int i = 0; i < 2; i++) {
+         for (int j = 0; j < 6; j++) {
+            sprintf(temp, "%d ", listOfGames[indexOfGame].gameTables[indexOfTableGame].table[i][j].numberOfSeeds);
+            strcat(GameTableMessage, temp);
+         }
+
+         if (i == 0) {
+            sprintf(temp, "  %s is getting %d seeds.", listOfGames[indexOfGame].player1.name, listOfGames[indexOfGame].gameTables[indexOfTableGame].seedsWonByP1);
+         }
+         if (i == 1) {
+            sprintf(temp, "  %s is getting %d seeds.", listOfGames[indexOfGame].player2.name, listOfGames[indexOfGame].gameTables[indexOfTableGame].seedsWonByP2);
+         }
+         strcat(GameTableMessage, temp);
+         strcat(GameTableMessage, "\n");
       }
-      strcat(GameTableMessage, "\n"); 
-    }
 
     strcat(message, GameTableMessage);
-    strcat(message, "\n");
-    
-    sprintf(temp, "seeds won by: %s\n", listOfGames[indexOfGame].player1.name);
-    strcat(message, temp);
-    sprintf(temp, "%d\n", listOfGames[indexOfGame].gameTables[indexOfTableGame].seedsWonByP1);
-    strcat(message, temp);
-    
-    sprintf(temp, "seeds won by: %s\n", listOfGames[indexOfGame].player2.name);
-    strcat(message, temp);
-    sprintf(temp, "%d\n", listOfGames[indexOfGame].gameTables[indexOfTableGame].seedsWonByP2);
-    strcat(message, temp);
-    
+
     Client listOfClientsToRecieveGameTable[MAX_RECIEVED_GAME_CLIENTS];
     listOfClientsToRecieveGameTable[0] = listOfGames[indexOfGame].player1;
     listOfClientsToRecieveGameTable[1] = listOfGames[indexOfGame].player2;
@@ -85,30 +82,17 @@ void showGameTable(int indexOfGame, int indexOfTableGame,char* opponentName) {
     for (int i = 0; i < listOfGames[indexOfGame].indexLastObserver; i++) {
         listOfClientsToRecieveGameTable[i + 2] = listOfGames[indexOfGame].observers[i];
     }
-    sprintf(temp, "it's the turn of %s\n", opponentName);
+    sprintf(temp, "it's the turn of %s type p number_from_1_to_6 to play\n", opponentName);
     strcat(message, temp);
     send_message_to_clients_from_server(listOfClientsToRecieveGameTable,listOfGames[indexOfGame].indexLastObserver+2,message);
 }
 
-static void addGameObserver(Client observer){
+void addGameObserver(Client observer){
    listOfGames[indexOfGame].observers[listOfGames[indexOfGame].indexLastObserver] = observer;
    listOfGames[indexOfGame].indexLastObserver+=1;
 }
-/*
-static void startGame(Client player1,Client player2, int indexOfGame,int choosenDigit){
-   int i=0;
-   while (i<10){
-      i++;
-      playGameTurn(player1,indexOfGame,choosenDigit);
-      showGameTable(indexOfGame,listOfGames[indexOfGame].lastGameTableIndex);
-      if (isGameOver(indexOfGame)){break;}
-      playGameTurn(player2,indexOfGame,choosenDigit);
-      showGameTable(indexOfGame,listOfGames[indexOfGame].lastGameTableIndex);
-      if (isGameOver(indexOfGame)){break;}
-   }
-   //printf("%s the winner of the game is  \n", winnerPlayer(indexOfGame).name);
-}
-*/
+
+
 int initiateGame(Client player1,Client player2,char* playerName){
    printf("we are initiating Game \n");
    printf("indexOfGame \n");
@@ -123,43 +107,60 @@ int initiateGame(Client player1,Client player2,char* playerName){
    return indexOfGame ;
 }
 
+
+
+void collectSeeds(Client player, int indexOfGame,int i,int j,int count,int nbSeeds,int nbColledSeeds){
+
+
+}
+
+bool isGameOver(){
+   return false;
+}
+
 void playGameTurn(Client player,int indexOfPlayer, int indexOfGame,int choosenDigit,char* opponentName){
    // index of the player represants 0 or 1 -> the side in wich the player play in !
    int nomberOfSeeds = listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].table[indexOfPlayer][choosenDigit].numberOfSeeds;
    int count = nomberOfSeeds;
+   
+   printf("player name ( %s ) and player index ( %d ) and \n",player.name,indexOfPlayer);
    printf("nomber of collected seeds %d \n",count);
 
    listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].table[indexOfPlayer][choosenDigit].numberOfSeeds = 0;
    int i = indexOfPlayer;
    int j = choosenDigit;
-   //distribute the taken seeds to the next houses
+
+   //sow the taken seeds to the next houses
    while(count > 0){
-      if (i == 0){
-         j-=1;
-         if (j<0){
-            j+=1;
-            i=1;
-         }
-      }
-      else{
-         j+=1;
-         if (j>=6){
+         if (i == 0){
             j-=1;
-            i=0;
+            if (j<0){
+               j+=1;
+               i=1;
+            }
          }
+         else{
+            j+=1;
+            if (j>=6){
+               j-=1;
+               i=0;
+            }
+         }
+
+         listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].table[i][j].numberOfSeeds+=1;
+         //printf("nomber of seeds on t[i][j] %d \n",listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].table[i][j].numberOfSeeds);
+         count-=1;
       }
+   
 
-      listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].table[i][j].numberOfSeeds+=1;
-      printf("nomber of seeds on t[i][j] %d \n",listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].table[i][j].numberOfSeeds);
-      count-=1;
-   }
-
-   //collect Houses Seeds with 2 or 3 Seeds
+   printf("i and j after throwing seeds! (%d,%d) \n",i,j);
    count = nomberOfSeeds;
    int nbSeeds=0;
    int nbColledSeeds=0;
    
-   while (count > 0){
+   
+    //collecting seeds
+   while(count > 0){
       
       printf("(i,j)=(%d,%d)",i,j);
 
@@ -168,9 +169,25 @@ void playGameTurn(Client player,int indexOfPlayer, int indexOfGame,int choosenDi
       if (nbSeeds == 2 || nbSeeds == 3){
          nbColledSeeds += nbSeeds;
          listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].table[i][j].numberOfSeeds = 0 ;
+      
+         if (i == 1) {
+            j -= 1;
+            if (j < 0) {
+                  j += 1;
+                  i = 0;
+            }
+         } else {
+            j += 1;
+            if (j >= 6) {
+                  j -= 1;
+                  i = 1;
+            }
+         }
+
+         count-=1;
       }
       else{ 
-         if (listOfGames[indexOfGame].player1.name ==player.name){
+         if (indexOfPlayer == 0){
             printf("is player1 eating the seeds ? %d \n",nbColledSeeds);
             listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].seedsWonByP1+=nbColledSeeds;
          }
@@ -180,26 +197,11 @@ void playGameTurn(Client player,int indexOfPlayer, int indexOfGame,int choosenDi
          }
          break;
       }
-
-
-      if (i == 1) {
-         j -= 1;
-         if (j < 0) {
-               j += 1;
-               i = 0;
-         }
-      } else {
-         j += 1;
-         if (j >= 6) {
-               j -= 1;
-               i = 1;
-         }
-      }
-
-      count-=1;
    }
    
    
-   showGameTable(indexOfGame,listOfGames[indexOfGame].lastGameTableIndex,opponentName);
-}
+   if(!isGameOver()){
+      showGameTable(indexOfGame,listOfGames[indexOfGame].lastGameTableIndex,opponentName);
+   }
 
+}

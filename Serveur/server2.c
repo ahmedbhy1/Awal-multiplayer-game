@@ -105,16 +105,50 @@ static void app(void)
 
          Client c = { csock };
          strncpy(c.name, buffer, BUF_SIZE - 1);
-         clients[actual] = c;
-         actual++;
-         
-         if (!search(c.name)){
-            State state = {0, 0 , 0 ,NULL,false};
-            insert(c.name,state);
+         bool isNameDuplicate = false;
+         for (int i=0;i<actual;i++){
+            printf("letts see the client %d name %s =? %s\n",i,clients[i].name,c.name);
+            if (strcmp(clients[i].name, c.name) == 0){
+               isNameDuplicate = true;
+               break;
+            }
          }
-
-         print_client_names(clients, actual);
-         display_players();
+         if (isNameDuplicate)
+         {
+            printf("Duplicate name detected: %s\n", buffer);
+            const char *errorMessage = "Name already in use. Please retry with a different name.\n";
+            send(csock, errorMessage, strlen(errorMessage), 0);
+            closesocket(csock); // Close the connection
+         }
+         else{
+            clients[actual] = c;
+            actual++;
+            if (!search(c.name)){
+               State state = {0, 0 , 0 ,NULL,false};
+               insert(c.name,state);
+            }
+            State *player = search(c.name);
+            if (player && player->opponentName && player->state==3 ){
+               char message[256];
+               strcpy(message, "reconnecting to the game with ");
+               strcat(message, player->opponentName);
+               strcat(message, "...\n here is the Last Table State: \n");
+               write_client(c.sock,message);
+               char* nextPlayerName;
+               if (player->isPlayerTurn){
+                  nextPlayerName =  c.name;
+               }
+               else{
+                  nextPlayerName = player->opponentName;
+               }
+               showGameTable(player->currentIndexOfGame,nextPlayerName);
+            }
+            else{
+               write_client(c.sock,"write {commands} to get the full command list \n");
+            }
+            print_client_names(clients, actual);
+            display_players();
+            }
       }
       else
       {
@@ -190,7 +224,7 @@ static void sendPlayersNamesToClient(Client *clients, Client receiver, int actua
 
 static void getCommendList(const char *ch, Client client, Client *clients, int actual) {
    char message[BUF_SIZE] = "";  // Initialize message as an empty string
-   
+
    // Safely append strings to the message
    if (strlen(message) + strlen("getPlayersList: 1\n") < BUF_SIZE) {
       strcat(message, "getPlayersList: 1\n");
@@ -200,16 +234,23 @@ static void getCommendList(const char *ch, Client client, Client *clients, int a
    if (strlen(message) + strlen("request Starting Game With Player : 2 {player Name}\n") < BUF_SIZE) {
       strcat(message, "request Starting Game With Player : 2 {player Name}\n");
    }
-   // Print message to the console (for debugging, if needed)
-   // printf("%s \n", message);
-   
+
+   // Safely append strings to the message
+   if (strlen(message) + strlen("get the list of active Games : ag\n") < BUF_SIZE) {
+      strcat(message, "get the list of active Games : ag\n");
+   }
+
+   // Safely append strings to the message
+   if (strlen(message) + strlen("join a Game as an observer o {index of active game to join}\n") < BUF_SIZE) {
+      strcat(message, "join a Game as an observer o {index of active game to join}\n");
+   }
    // Send the message to the client (assuming client.sock is the socket)
    write_client(client.sock, message);
 }
 
 
 
-static void requestGameFromPlayer(Client *clients, Client sender, const char *playerName, int actual,const char *ch) {
+static void requestOrAcceptGameFromPlayer(Client *clients, Client sender, const char *playerName, int actual,const char *ch) {
    int i = 0;
    char message[BUF_SIZE];
    message[0] = 0;
@@ -221,21 +262,27 @@ static void requestGameFromPlayer(Client *clients, Client sender, const char *pl
       {
          if (strcmp(clients[i].name, playerName) == 0)
          {
-            if (strcmp(ch,"")==0){
-               modify_player_state(sender.name,1,0,0,playerName,false);
-               modify_player_state(playerName,2,0,1,sender.name,false);
-               snprintf(message, BUF_SIZE, "The Player %s asks you for a game (y/n)!", sender.name);
-            }
+            State *player1 = search(sender.name);
+            State *player2 = search(playerName);
+            printf("player1= %s player2= %s \n",sender.name,playerName);
+            if(player1 && player2){
+               if (strcmp(ch,"")==0 && player1->state==0 && player2->state==0){
+                  modify_player_state(sender.name,1,0,0,playerName,false);
+                  modify_player_state(playerName,2,0,1,sender.name,false);
+                  snprintf(message, BUF_SIZE, "The Player %s asks you for a game (y/n)!", sender.name);
+               }
 
-            // Assuming receiver is stored in clients[actual] based on the context
-            write_client(clients[i].sock, message);
-            if (strcmp(ch,"y")==0){
-               int index = initiateGame(clients[i],sender,playerName);
-               modify_player_state(sender.name,3,index,NULL,NULL,false);
-               modify_player_state(playerName,3,index,NULL,NULL,true);
-               printf("index of the created game! ");
-               printf("%d \n",index);
+               // Assuming receiver is stored in clients[actual] based on the context
+               write_client(clients[i].sock, message);
+               if (strcmp(ch,"y")==0 && player1->state==2 && player2->state==1){
+                  int index = initiateGame(clients[i],sender,playerName);
+                  modify_player_state(sender.name,3,index,NULL,NULL,false);
+                  modify_player_state(playerName,3,index,NULL,NULL,true);
+                  printf("index of the created game! ");
+                  printf("%d \n",index);
+               }
             }
+            
             
          }
       }
@@ -266,29 +313,49 @@ static void doCommend(const char *ch,Client client ,Client *clients, int actual)
          State *state = search(client.name);
          if (state->isPlayerTurn){
             //printf("playGameTurn params client name; index player; current index of game, indexToPlay :%s,%d,%d,%d \n",client.name,state->playerIndex,state->currentIndexOfGame,indexToPlay);
-            playGameTurn(client,state->playerIndex,state->currentIndexOfGame,indexToPlay-1,state->opponentName);
+            bool valid = playGameTurn(client,state->playerIndex,state->currentIndexOfGame,indexToPlay-1,state->opponentName);
             printf("%s is the previous player turn \n",client.name);
             printf("%s its your turn \n",state->opponentName);
-            modify_player_state(client.name,NULL,NULL,NULL,NULL,false);
-            modify_player_state(state->opponentName,NULL,NULL,NULL,NULL,true);
+            if (valid){
+               modify_player_state(client.name,NULL,NULL,NULL,NULL,false);
+               modify_player_state(state->opponentName,NULL,NULL,NULL,NULL,true);
+            }
+            else{
+               write_client(client.sock,"Your Game Play is Not Valid! \n You can't choose Houses of Seeds 0 !\n");
+            }
          }
       } else {
          printf("Invalid index or input format. Ensure the index is between 0 and 6.\n");
       }
    }
-   if (strncmp(ch, "2 ", 2) == 0 || strncmp(ch, "y ", 2) == 0) {  // Check if the string starts with "2 " or with y
+   if (strncmp(ch, "2 ", 2) == 0) {  // Check if the string starts with "2 " or with y
       char playerName[256];
       sscanf(ch + 2, "%s", playerName);  // Extract player name from the string starting after "2 "
-      if (strncmp(ch, "y ", 2) == 0){
-         printf("we are accepting game from player! \n");
-         requestGameFromPlayer(clients,client,playerName,actual,"y");
-      }
-      else{
-         printf("we are requesting game to player! \n");
-         requestGameFromPlayer(clients,client,playerName,actual,"");
+      printf("we are requesting game to player! \n");
+      requestOrAcceptGameFromPlayer(clients,client,playerName,actual,"");
+   }
+
+   if (strncmp(ch, "o ", 2) == 0) {  // Check if the string starts with "2 " or with y
+      int indexOfGame;
+      // Try to extract an integer from the string starting at position 2
+      if (sscanf(ch + 2, "%d", &indexOfGame) == 1 && isValidGameIndexToJoinAsOb(indexOfGame)) {
+         joinClientAsObserver(client,indexOfGame);
+         modify_player_state(client.name,4,NULL,NULL,NULL,false);
       }
    }
 
+   if (strncmp(ch, "ag", 2) == 0) {
+      showCurrentGames(client);
+   }
+
+   if (strcmp(ch, "y") == 0) {
+      printf("we are accepting game from player! \n");
+      State *result = search(client.name);
+      if (result){
+         requestOrAcceptGameFromPlayer(clients,client,result->opponentName,actual,"y");
+      }
+       
+   }
 }
 
 

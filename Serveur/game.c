@@ -7,6 +7,7 @@
 #define MAX_RECIEVED_GAME_CLIENTS 12
 #define MAX_GAMETABLES 10
 #define MAX_GAMES 10
+#include <stdio.h>
 #include "game.h"
 #include "common.c"
 #include <stdbool.h>
@@ -218,4 +219,92 @@ void playGameTurn(Client player,int indexOfPlayer, int indexOfGame,int choosenDi
       showGameTable(indexOfGame,listOfGames[indexOfGame].lastGameTableIndex,opponentName);
    }
 
+}
+
+void saveGamesToFile(const char *filename) {
+    FILE *file = fopen(filename, "wb");
+    if (!file) {
+        perror("Error al abrir el archivo para guardar");
+        return;
+    }
+
+    // Escribir el índice actual de juegos
+    fwrite(&indexOfGame, sizeof(indexOfGame), 1, file);
+
+    // Escribir todos los juegos en el archivo
+    fwrite(listOfGames, sizeof(struct Game), indexOfGame, file);
+
+    fclose(file);
+    printf("Juegos guardados exitosamente en '%s'.\n", filename);
+}
+
+void loadGamesFromFile(const char *filename) {
+    FILE *file = fopen(filename, "rb");
+    if (!file) {
+        perror("Error al abrir el archivo para cargar");
+        return;
+    }
+
+    // Leer el índice actual de juegos
+    fread(&indexOfGame, sizeof(indexOfGame), 1, file);
+
+    // Leer todos los juegos desde el archivo
+    fread(listOfGames, sizeof(struct Game), indexOfGame, file);
+
+    fclose(file);
+    printf("Juegos cargados exitosamente desde '%s'.\n", filename);
+}
+
+int main() {
+    const char *filename = "games_data.dat";
+
+    // Crear dos clientes de prueba
+    Client client1 = {0};
+    client1.sock = 1; // Valor ficticio, no será usado después
+    strcpy(client1.name, "Player 1");
+
+    Client client2 = {0};
+    client2.sock = 2; // Valor ficticio, no será usado después
+    strcpy(client2.name, "Player 2");
+
+    Client client3 = {0};
+    client1.sock = 3; // Valor ficticio, no será usado después
+    strcpy(client1.name, "Player 3");
+
+    Client client4 = {0};
+    client2.sock = 4; // Valor ficticio, no será usado después
+    strcpy(client2.name, "Player 4");
+
+    // Crear dos juegos con tablas de prueba
+    listOfGames[0].id = 0;
+    listOfGames[0].player1 = client1;
+    listOfGames[0].player2 = client2;
+    listOfGames[1].id = 1;
+    listOfGames[1].player1 = client1;
+    listOfGames[1].player2 = client2;
+    indexOfGame = 2;
+
+    // Guardar juegos en el archivo
+    saveGamesToFile(filename);*/
+
+    Limpiar la lista para probar la carga
+    memset(listOfGames, 0, sizeof(listOfGames));
+    indexOfGame = 0;
+
+    // Cargar juegos desde el archivo
+    loadGamesFromFile(filename);
+
+    // Verificar si los juegos se cargaron correctamente
+    printf("Número de juegos cargados: %d\n", indexOfGame);
+    for (int i = 0; i < indexOfGame; i++) {
+        printf("Juego %d:\n", listOfGames[i].id);
+        printf("  Jugador 1: %s\n", listOfGames[i].player1.name);
+        printf("  Jugador 2: %s\n", listOfGames[i].player2.name);
+        printf("  Semillas en la primera casa del jugador 1: %d\n",
+               listOfGames[i].gameTables[0].table[0][0].numberOfSeeds);
+        printf("  Semillas ganadas por Player 1: %d\n",
+               listOfGames[i].gameTables[0].seedsWonByP1);
+    }
+
+    return 0;
 }

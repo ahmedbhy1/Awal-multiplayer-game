@@ -476,6 +476,11 @@ int main(int argc, char **argv)
 
    init_table();
    
+
+   load_hashmap();
+   
+   display_players();
+
    app();
 
    free_table();

@@ -31,6 +31,8 @@ void init_table();
 void insert(const char *key, State value);
 State* search(const char *key);
 void free_table();
+void save_hashmap();
+void load_hashmap();
 void display_players();
 int modify_player_state(const char *playerName, int *newState, int *newIndexOfGame, int *newPlayerIndex, const char *newOpponentName,bool newIsPlayerTurn);
 

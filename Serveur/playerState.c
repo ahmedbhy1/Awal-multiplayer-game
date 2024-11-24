@@ -49,6 +49,7 @@ void insert(const char *playerName, State value) {
     newNode->value = value;
     newNode->next = playersState[index];
     playersState[index] = newNode;
+    save_hashmap();
 }
 
 // Search in the hash table
@@ -93,6 +94,7 @@ int modify_player_state(const char *playerName, int *newState, int *newIndexOfGa
         playerState->opponentName = strdup(newOpponentName);
     }
 
+    save_hashmap();
     printf("Player %s's state has been modified.\n", playerName);
     return 1; // Success
 }
@@ -136,6 +138,87 @@ void free_table() {
             free(temp);
         }
     }
+}
+
+void save_hashmap() {
+    printf("Checkpoint -1");
+    FILE *file = fopen("player_states.dat", "wb");
+    if (!file) {
+        perror("Error opening file to save hash map");
+        return;
+    }
+
+    size_t numEntries = 0;
+    printf("Checkpoint 0");
+    // First pass: count the number of valid entries in the hash table
+    for (int i = 0; i < TABLE_SIZE; i++) {
+        HashNode *node = playersState[i];
+        while (node) {
+            numEntries++;
+            node = node->next;
+        }
+    }
+    printf("Checkpoint 1");
+    // Write the number of entries to the file
+    fwrite(&numEntries, sizeof(size_t), 1, file);
+
+    // Second pass: save each entry
+    printf("Checkpoint 2");
+    for (int i = 0; i < TABLE_SIZE; i++) {
+        HashNode *node = playersState[i];
+        while (node) {
+            // Save the player's name (key)
+            size_t nameLength = strlen(node->playerName) + 1;
+            fwrite(&nameLength, sizeof(size_t), 1, file);
+            fwrite(node->playerName, sizeof(char), nameLength, file);
+
+            // Save the state (value)
+            fwrite(&node->value, sizeof(State), 1, file);
+
+            node = node->next;
+        }
+    }
+    printf("Hash Table saved succesfully");
+    fclose(file);
+}
+
+int load_hashmap() {
+    FILE *file = fopen("player_states.dat", "rb");
+    if (!file) {
+        perror("Error opening file to load hash map");
+        return -1;
+    }
+
+    size_t numEntries;
+    fread(&numEntries, sizeof(size_t), 1, file);
+
+    // Load each entry and insert it into the hash table
+    for (size_t i = 0; i < numEntries; i++) {
+        // Read the player's name (key)
+        size_t nameLength;
+        fread(&nameLength, sizeof(size_t), 1, file);
+        char *playerName = (char *)malloc(nameLength);
+        if (!playerName) {
+            perror("Memory allocation for playerName failed");
+            fclose(file);
+            return -1;
+        }
+        fread(playerName, sizeof(char), nameLength, file);
+
+        // Read the state (value)
+        State playerState;
+        fread(&playerState, sizeof(State), 1, file);
+
+        // Insert the loaded entry into the hash table
+        insert(playerName, playerState);
+
+        // Free the playerName (it's no longer needed after insertion)
+        free(playerName);
+    }
+
+    printf("File loaded succesfully \n");
+    fclose(file);
+    return 0;  // Success
 }
 
 /*

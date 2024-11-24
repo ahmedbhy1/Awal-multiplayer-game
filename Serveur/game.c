@@ -50,10 +50,10 @@ void addGameTable(int indexOfGame, int indexOfTableGame) {
    //listOfGames[indexOfGame].lastGameTableIndex +=1;
 }
 
-void showGameTable(int indexOfGame, int indexOfTableGame,char* opponentName) {
+void showGameTable(int indexOfGame,char* nextPlayerName) {
     char message[1024] = ""; // Ensure the buffer is large enough for the full message
     char temp[256]; // Temporary buffer for individual parts of the message
-
+    int indexOfTableGame = listOfGames[indexOfGame].lastGameTableIndex;
     strcat(message, "we are showing Game Table \n");
     
     char GameTableMessage[256] = "";
@@ -82,7 +82,7 @@ void showGameTable(int indexOfGame, int indexOfTableGame,char* opponentName) {
     for (int i = 0; i < listOfGames[indexOfGame].indexLastObserver; i++) {
         listOfClientsToRecieveGameTable[i + 2] = listOfGames[indexOfGame].observers[i];
     }
-    sprintf(temp, "it's the turn of %s type p number_from_1_to_6 to play\n", opponentName);
+    sprintf(temp, "it's the turn of %s type p number_from_1_to_6 to play\n", nextPlayerName);
     strcat(message, temp);
     send_message_to_clients_from_server(listOfClientsToRecieveGameTable,listOfGames[indexOfGame].indexLastObserver+2,message);
 }
@@ -103,7 +103,7 @@ int initiateGame(Client player1,Client player2,char* playerName){
    listOfGames[indexOfGame].player2 = player2;
    listOfGames[indexOfGame].lastGameTableIndex = 0;
    addGameTable(indexOfGame,0);
-   showGameTable(indexOfGame,0,playerName);
+   showGameTable(indexOfGame,playerName);
    return indexOfGame ;
 }
 
@@ -118,9 +118,10 @@ bool isGameOver(){
    return false;
 }
 
-void playGameTurn(Client player,int indexOfPlayer, int indexOfGame,int choosenDigit,char* opponentName){
+bool playGameTurn(Client player,int indexOfPlayer, int indexOfGame,int choosenDigit,char* opponentName){
    // index of the player represants 0 or 1 -> the side in wich the player play in !
    int nomberOfSeeds = listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].table[indexOfPlayer][choosenDigit].numberOfSeeds;
+   if (nomberOfSeeds==0)return false;
    int count = nomberOfSeeds;
    
    printf("player name ( %s ) and player index ( %d ) and \n",player.name,indexOfPlayer);
@@ -201,7 +202,7 @@ void playGameTurn(Client player,int indexOfPlayer, int indexOfGame,int choosenDi
    
    
    if(!isGameOver()){
-      showGameTable(indexOfGame,listOfGames[indexOfGame].lastGameTableIndex,opponentName);
+      showGameTable(indexOfGame,opponentName);
    }
-
+   return true;
 }

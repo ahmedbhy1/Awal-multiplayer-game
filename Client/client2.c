@@ -34,7 +34,6 @@ static void app(const char *address, const char *name)
 
    /* send our name */
    write_server(sock, name);
-   printf("write {commands} to get the full command list \n");
    while(1)
    {
       FD_ZERO(&rdfs);

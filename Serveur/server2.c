@@ -275,7 +275,9 @@ static void requestOrAcceptGameFromPlayer(Client *clients, Client sender, const 
                // Assuming receiver is stored in clients[actual] based on the context
                write_client(clients[i].sock, message);
                if (strcmp(ch,"y")==0 && player1->state==2 && player2->state==1){
+                  printf("i hope we enter here for 2 ! \n");
                   int index = initiateGame(clients[i],sender,playerName);
+                  printf("i hope we enter here for 3 ! \n");
                   modify_player_state(sender.name,3,index,NULL,NULL,false);
                   modify_player_state(playerName,3,index,NULL,NULL,true);
                   printf("index of the created game! ");
@@ -352,6 +354,7 @@ static void doCommend(const char *ch,Client client ,Client *clients, int actual)
       printf("we are accepting game from player! \n");
       State *result = search(client.name);
       if (result){
+         printf("i hope we enter here for 1 ! \n");
          requestOrAcceptGameFromPlayer(clients,client,result->opponentName,actual,"y");
       }
        
@@ -476,6 +479,7 @@ int main(int argc, char **argv)
 
    init_table();
    
+   //save_hashmap();
 
    load_hashmap();
    

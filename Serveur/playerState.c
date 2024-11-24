@@ -10,7 +10,7 @@ typedef struct State {
     int state; // 0 player is waiting | 1 player is requesting a game | 2 player is requested a game | 3 player is playing | 4 player is watching
     int currentIndexOfGame ;
     int playerIndex ; // 0 or 1
-    char* opponentName ;
+    char opponentName[50] ;
     bool isPlayerTurn;
 } State;
 
@@ -88,10 +88,8 @@ int modify_player_state(const char *playerName, int *newState, int *newIndexOfGa
     playerState->isPlayerTurn = newIsPlayerTurn;
 
     if (newOpponentName != NULL) {
-        // Free the existing opponent name if it was dynamically allocated
-        free(playerState->opponentName);
-        // Allocate new memory and copy the string
-        playerState->opponentName = strdup(newOpponentName);
+        strncpy(playerState->opponentName, newOpponentName, sizeof(playerState->opponentName) - 1);
+        playerState->opponentName[sizeof(playerState->opponentName) - 1] = '\0'; // Ensure null-termination
     }
 
     save_hashmap();
@@ -141,7 +139,7 @@ void free_table() {
 }
 
 void save_hashmap() {
-    printf("Checkpoint -1");
+    printf("Checkpoint -1\n");
     FILE *file = fopen("player_states.dat", "wb");
     if (!file) {
         perror("Error opening file to save hash map");
@@ -149,7 +147,7 @@ void save_hashmap() {
     }
 
     size_t numEntries = 0;
-    printf("Checkpoint 0");
+    printf("Checkpoint 0\n");
     // First pass: count the number of valid entries in the hash table
     for (int i = 0; i < TABLE_SIZE; i++) {
         HashNode *node = playersState[i];
@@ -158,12 +156,12 @@ void save_hashmap() {
             node = node->next;
         }
     }
-    printf("Checkpoint 1");
+    printf("Checkpoint 1\n");
     // Write the number of entries to the file
     fwrite(&numEntries, sizeof(size_t), 1, file);
 
     // Second pass: save each entry
-    printf("Checkpoint 2");
+    printf("Checkpoint 2\n");
     for (int i = 0; i < TABLE_SIZE; i++) {
         HashNode *node = playersState[i];
         while (node) {
@@ -175,10 +173,15 @@ void save_hashmap() {
             // Save the state (value)
             fwrite(&node->value, sizeof(State), 1, file);
 
+            // Save the opponentName (it is now a fixed-size array)
+            // Since opponentName is an array of size 50, we can simply write it directly
+            fwrite(node->value.opponentName, sizeof(char), sizeof(node->value.opponentName), file);
+
             node = node->next;
         }
     }
-    printf("Hash Table saved succesfully");
+
+    printf("Hash Table saved successfully\n");
     fclose(file);
 }
 
@@ -209,6 +212,9 @@ int load_hashmap() {
         State playerState;
         fread(&playerState, sizeof(State), 1, file);
 
+        // Read the opponentName (fixed-size array of 50 characters)
+        fread(playerState.opponentName, sizeof(char), sizeof(playerState.opponentName), file);
+
         // Insert the loaded entry into the hash table
         insert(playerName, playerState);
 
@@ -216,10 +222,11 @@ int load_hashmap() {
         free(playerName);
     }
 
-    printf("File loaded succesfully \n");
+    printf("File loaded successfully\n");
     fclose(file);
     return 0;  // Success
 }
+
 
 /*
 int main() {

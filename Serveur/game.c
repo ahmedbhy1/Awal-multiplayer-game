@@ -7,6 +7,7 @@
 #define MAX_RECIEVED_GAME_CLIENTS 12
 #define MAX_GAMETABLES 10
 #define MAX_GAMES 10
+#define MAX_MESSAGE_LENGTH 500
 #include "game.h"
 #include "common.c"
 #include <stdbool.h>
@@ -30,6 +31,7 @@ struct Game {
    Client player2;
    Client observers[MAX_OBSERVERS];
    int indexLastObserver;
+   bool isGameOver;
    Client winner;
    struct GameTable gameTables[MAX_GAMETABLES];
    int lastGameTableIndex;
@@ -107,15 +109,41 @@ int initiateGame(Client player1,Client player2,char* playerName){
    return indexOfGame ;
 }
 
+void showCurrentGames(Client client) {
+    char message[MAX_MESSAGE_LENGTH];
+    message[0] = '\0'; // Initialize message as an empty string
 
+    for (int i = 1; i <= indexOfGame; i++) {
+        if (!listOfGames[i].isGameOver) {
+            char gameInfo[200];
+            snprintf(gameInfo, sizeof(gameInfo), 
+                     "Game index: %d | Game Players: %s VS %s\n", 
+                     i, 
+                     listOfGames[i].player1.name, 
+                     listOfGames[i].player2.name);
+            strcat(message, gameInfo);
+        }
+    }
 
-void collectSeeds(Client player, int indexOfGame,int i,int j,int count,int nbSeeds,int nbColledSeeds){
-
-
+    write_client(client.sock, message);
+    return true;
 }
 
+bool isValidGameIndexToJoinAsOb(int index){
+   if (index>indexOfGame || listOfGames[index].isGameOver)return false;
+   return true;
+}
+
+
+bool joinClientAsObserver(Client client,int indexOfGame){
+   listOfGames[indexOfGame].observers[listOfGames[indexOfGame].indexLastObserver] = client;
+   listOfGames[indexOfGame].indexLastObserver++;
+}
+
+
 bool isGameOver(){
-   return false;
+   bool gameOver = false;
+   return gameOver;
 }
 
 bool playGameTurn(Client player,int indexOfPlayer, int indexOfGame,int choosenDigit,char* opponentName){
@@ -215,8 +243,7 @@ bool playGameTurn(Client player,int indexOfPlayer, int indexOfGame,int choosenDi
 
 
    
-   if(!isGameOver()){
-      showGameTable(indexOfGame,opponentName);
-   }
+   isGameOver(indexOfGame);
+   showGameTable(indexOfGame,opponentName);
    return true;
 }

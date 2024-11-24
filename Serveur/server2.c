@@ -224,7 +224,7 @@ static void sendPlayersNamesToClient(Client *clients, Client receiver, int actua
 
 static void getCommendList(const char *ch, Client client, Client *clients, int actual) {
    char message[BUF_SIZE] = "";  // Initialize message as an empty string
-   
+
    // Safely append strings to the message
    if (strlen(message) + strlen("getPlayersList: 1\n") < BUF_SIZE) {
       strcat(message, "getPlayersList: 1\n");
@@ -234,9 +234,16 @@ static void getCommendList(const char *ch, Client client, Client *clients, int a
    if (strlen(message) + strlen("request Starting Game With Player : 2 {player Name}\n") < BUF_SIZE) {
       strcat(message, "request Starting Game With Player : 2 {player Name}\n");
    }
-   // Print message to the console (for debugging, if needed)
-   // printf("%s \n", message);
-   
+
+   // Safely append strings to the message
+   if (strlen(message) + strlen("get the list of active Games : ag\n") < BUF_SIZE) {
+      strcat(message, "get the list of active Games : ag\n");
+   }
+
+   // Safely append strings to the message
+   if (strlen(message) + strlen("join a Game as an observer o {index of active game to join}\n") < BUF_SIZE) {
+      strcat(message, "join a Game as an observer o {index of active game to join}\n");
+   }
    // Send the message to the client (assuming client.sock is the socket)
    write_client(client.sock, message);
 }
@@ -327,6 +334,20 @@ static void doCommend(const char *ch,Client client ,Client *clients, int actual)
       printf("we are requesting game to player! \n");
       requestOrAcceptGameFromPlayer(clients,client,playerName,actual,"");
    }
+
+   if (strncmp(ch, "o ", 2) == 0) {  // Check if the string starts with "2 " or with y
+      int indexOfGame;
+      // Try to extract an integer from the string starting at position 2
+      if (sscanf(ch + 2, "%d", &indexOfGame) == 1 && isValidGameIndexToJoinAsOb(indexOfGame)) {
+         joinClientAsObserver(client,indexOfGame);
+         modify_player_state(client.name,4,NULL,NULL,NULL,false);
+      }
+   }
+
+   if (strncmp(ch, "ag", 2) == 0) {
+      showCurrentGames(client);
+   }
+
    if (strcmp(ch, "y") == 0) {
       printf("we are accepting game from player! \n");
       State *result = search(client.name);

@@ -255,7 +255,7 @@ void loadGamesFromFile(const char *filename) {
     printf("Juegos cargados exitosamente desde '%s'.\n", filename);
 }
 
-int main() {
+/*int main() {
     const char *filename = "games_data.dat";
 
     // Crear dos clientes de prueba
@@ -285,9 +285,9 @@ int main() {
     indexOfGame = 2;
 
     // Guardar juegos en el archivo
-    saveGamesToFile(filename);*/
+    saveGamesToFile(filename);
 
-    Limpiar la lista para probar la carga
+    //Limpiar la lista para probar la carga
     memset(listOfGames, 0, sizeof(listOfGames));
     indexOfGame = 0;
 
@@ -307,4 +307,4 @@ int main() {
     }
 
     return 0;
-}
+}*/

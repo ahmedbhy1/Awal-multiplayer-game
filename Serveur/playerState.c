@@ -49,6 +49,7 @@ void insert(const char *playerName, State value) {
     newNode->value = value;
     newNode->next = playersState[index];
     playersState[index] = newNode;
+    save_hashmap();
 }
 
 // Search in the hash table
@@ -93,6 +94,7 @@ int modify_player_state(const char *playerName, int *newState, int *newIndexOfGa
         playerState->opponentName = strdup(newOpponentName);
     }
 
+    save_hashmap();
     printf("Player %s's state has been modified.\n", playerName);
     return 1; // Success
 }
@@ -138,15 +140,16 @@ void free_table() {
     }
 }
 
-void save_hashmap(const char *filename, HashNode *playersState[]) {
-    FILE *file = fopen(filename, "wb");
+void save_hashmap() {
+    printf("Checkpoint -1");
+    FILE *file = fopen("player_states.dat", "wb");
     if (!file) {
         perror("Error opening file to save hash map");
         return;
     }
 
     size_t numEntries = 0;
-
+    printf("Checkpoint 0");
     // First pass: count the number of valid entries in the hash table
     for (int i = 0; i < TABLE_SIZE; i++) {
         HashNode *node = playersState[i];
@@ -155,11 +158,12 @@ void save_hashmap(const char *filename, HashNode *playersState[]) {
             node = node->next;
         }
     }
-
+    printf("Checkpoint 1");
     // Write the number of entries to the file
     fwrite(&numEntries, sizeof(size_t), 1, file);
 
     // Second pass: save each entry
+    printf("Checkpoint 2");
     for (int i = 0; i < TABLE_SIZE; i++) {
         HashNode *node = playersState[i];
         while (node) {
@@ -174,12 +178,12 @@ void save_hashmap(const char *filename, HashNode *playersState[]) {
             node = node->next;
         }
     }
-
+    printf("Hash Table saved succesfully");
     fclose(file);
 }
 
-int load_hashmap(const char *filename, HashNode *playersState[]) {
-    FILE *file = fopen(filename, "rb");
+int load_hashmap() {
+    FILE *file = fopen("player_states.dat", "rb");
     if (!file) {
         perror("Error opening file to load hash map");
         return -1;
@@ -212,6 +216,7 @@ int load_hashmap(const char *filename, HashNode *playersState[]) {
         free(playerName);
     }
 
+    printf("File loaded succesfully \n");
     fclose(file);
     return 0;  // Success
 }

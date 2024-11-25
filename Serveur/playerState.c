@@ -80,7 +80,7 @@ int modify_player_state(const char *playerName, int newState, int *newIndexOfGam
     if (newIndexOfGame != NULL) {
         playerState->currentIndexOfGame = newIndexOfGame;
     }
-    if (newPlayerIndex != NULL) {
+    if (newPlayerIndex != -1) {
         playerState->playerIndex = newPlayerIndex;
     }
     printf("this is the new player %s turn %d \n",playerName,newIsPlayerTurn);

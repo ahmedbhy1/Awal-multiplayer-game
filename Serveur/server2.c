@@ -141,7 +141,7 @@ static void app(void)
                else{
                   nextPlayerName = player->opponentName;
                }
-               showGameTable(player->currentIndexOfGame,nextPlayerName);
+               showGameTable(player->currentIndexOfGame,nextPlayerName ,clients,actual);
             }
             else{
                write_client(c.sock,"write {commands} to get the full command list \n");
@@ -286,7 +286,7 @@ static void requestOrAcceptGameFromPlayer(Client *clients, Client sender, const 
                // Assuming receiver is stored in clients[actual] based on the context
                write_client(clients[i].sock, message);
                if (strcmp(ch,"y")==0 && player1->state==2 && player2->state==1){
-                  int index = initiateGame(clients[i],sender,playerName);
+                  int index = initiateGame(clients[i],sender,playerName,clients,actual);
                   modify_player_state(sender.name,3,index,NULL,NULL,false);
                   modify_player_state(playerName,3,index,NULL,NULL,true);
                   printf("index of the created game! ");
@@ -324,7 +324,7 @@ static void doCommend(const char *ch,Client client ,Client *clients, int actual)
          State *state = search(client.name);
          if (state->isPlayerTurn){
             //printf("playGameTurn params client name; index player; current index of game, indexToPlay :%s,%d,%d,%d \n",client.name,state->playerIndex,state->currentIndexOfGame,indexToPlay);
-            bool valid = playGameTurn(client,state->playerIndex,state->currentIndexOfGame,indexToPlay-1,state->opponentName);
+            bool valid = playGameTurn(client,state->playerIndex,state->currentIndexOfGame,indexToPlay-1,state->opponentName,clients,actual);
             printf("%s is the previous player turn \n",client.name);
             printf("%s its your turn \n",state->opponentName);
             if (valid){
@@ -352,6 +352,7 @@ static void doCommend(const char *ch,Client client ,Client *clients, int actual)
       if (sscanf(ch + 2, "%d", &indexOfGame) == 1 && isValidGameIndexToJoinAsOb(indexOfGame)) {
          joinClientAsObserver(client,indexOfGame);
          modify_player_state(client.name,4,NULL,NULL,NULL,false);
+         write_client(client.sock,"you are watching the game! waite for somone to play a move! \n if you want to leave type q [enter] \n");
       }
    }
 

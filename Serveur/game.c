@@ -52,7 +52,7 @@ void addGameTable(int indexOfGame, int indexOfTableGame) {
    //listOfGames[indexOfGame].lastGameTableIndex +=1;
 }
 
-void showGameTable(int indexOfGame,char* nextPlayerName) {
+void showGameTable(int indexOfGame,char* nextPlayerName,Client *clients,int actual) {
     char message[1024] = ""; // Ensure the buffer is large enough for the full message
     char temp[256]; // Temporary buffer for individual parts of the message
     int indexOfTableGame = listOfGames[indexOfGame].lastGameTableIndex;
@@ -86,7 +86,7 @@ void showGameTable(int indexOfGame,char* nextPlayerName) {
     }
     sprintf(temp, "it's the turn of %s type p number_from_1_to_6 to play\n", nextPlayerName);
     strcat(message, temp);
-    send_message_to_clients_from_server(listOfClientsToRecieveGameTable,listOfGames[indexOfGame].indexLastObserver+2,message);
+    send_message_to_clients_from_server(listOfClientsToRecieveGameTable,listOfGames[indexOfGame].indexLastObserver+2,message,clients,actual );
 }
 
 void addGameObserver(Client observer){
@@ -95,7 +95,7 @@ void addGameObserver(Client observer){
 }
 
 
-int initiateGame(Client player1,Client player2,char* playerName){
+int initiateGame(Client player1,Client player2,char* playerName,Client *clients,int actual){
    printf("we are initiating Game \n");
    printf("indexOfGame \n");
    indexOfGame = indexOfGame + 1;
@@ -105,7 +105,7 @@ int initiateGame(Client player1,Client player2,char* playerName){
    listOfGames[indexOfGame].player2 = player2;
    listOfGames[indexOfGame].lastGameTableIndex = 0;
    addGameTable(indexOfGame,0);
-   showGameTable(indexOfGame,playerName);
+   showGameTable(indexOfGame,playerName,clients,actual);
    return indexOfGame ;
 }
 
@@ -146,7 +146,7 @@ bool isGameOver(){
    return gameOver;
 }
 
-bool playGameTurn(Client player,int indexOfPlayer, int indexOfGame,int choosenDigit,char* opponentName){
+bool playGameTurn(Client player,int indexOfPlayer, int indexOfGame,int choosenDigit,char* opponentName,Client *clients,int actual){
    // index of the player represants 0 or 1 -> the side in wich the player play in !
    int nomberOfSeeds = listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].table[indexOfPlayer][choosenDigit].numberOfSeeds;
    if (nomberOfSeeds==0)return false;
@@ -244,7 +244,7 @@ bool playGameTurn(Client player,int indexOfPlayer, int indexOfGame,int choosenDi
 
    
    isGameOver(indexOfGame);
-   showGameTable(indexOfGame,opponentName);
+   showGameTable(indexOfGame,opponentName,clients,actual);
    return true;
 }
 

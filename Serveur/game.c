@@ -247,3 +247,9 @@ bool playGameTurn(Client player,int indexOfPlayer, int indexOfGame,int choosenDi
    showGameTable(indexOfGame,opponentName);
    return true;
 }
+
+
+void surrenderFromGame(Client winner,int indexOfGame){
+   listOfGames[indexOfGame].isGameOver = true;   
+   listOfGames[indexOfGame].winner = winner;
+}

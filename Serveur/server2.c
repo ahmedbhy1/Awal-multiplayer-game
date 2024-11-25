@@ -277,7 +277,8 @@ static void requestOrAcceptGameFromPlayer(Client *clients, Client sender, const 
             State *player2 = search(playerName);
             printf("player1= %s player2= %s \n",sender.name,playerName);
             if(player1 && player2){
-               if (strcmp(ch,"")==0 && player1->state==0 && player2->state==0){
+               //enable the ovserver to start or get a play request
+               if (strcmp(ch,"")==0 && (player1->state==0 || player1->state==4) && (player2->state==0||player2->state==4) ){
                   modify_player_state(sender.name,1,0,0,playerName,false);
                   modify_player_state(playerName,2,0,1,sender.name,false);
                   snprintf(message, BUF_SIZE, "The Player %s asks you for a game (y/n)!", sender.name);

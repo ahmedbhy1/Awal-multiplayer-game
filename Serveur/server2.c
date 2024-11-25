@@ -306,8 +306,8 @@ static void requestOrAcceptGameFromPlayer(Client *clients, Client sender, const 
                write_client(clients[i].sock, message);
                if (strcmp(ch,"y")==0 && player1->state==2 && player2->state==1){
                   int index = initiateGame(clients[i],sender,playerName,clients,actual);
-                  modify_player_state(sender.name,3,index,NULL,NULL,false);
-                  modify_player_state(playerName,3,index,NULL,NULL,true);
+                  modify_player_state(sender.name,3,index,-1,NULL,false);
+                  modify_player_state(playerName,3,index,-1,NULL,true);
                   printf("index of the created game! ");
                   printf("%d \n",index);
                }
@@ -347,15 +347,15 @@ static void doCommend(const char *ch,Client client ,Client *clients, int actual)
             printf("%s is the previous player turn \n",client.name);
             printf("%s its your turn \n",state->opponentName);
             if (valid){
-               modify_player_state(client.name,-1,NULL,NULL,NULL,false);
-               modify_player_state(state->opponentName,-1,NULL,NULL,NULL,true);
+               modify_player_state(client.name,-1,NULL,-1,NULL,false);
+               modify_player_state(state->opponentName,-1,NULL,-1,NULL,true);
             }
             else{
                write_client(client.sock,"Your Game Play is Not Valid! \n You can't choose Houses of Seeds 0 !\n");
             }
             if (showPlayerWinIfGameOver(state->currentIndexOfGame,clients,actual)){
-               modify_player_state(client.name,0,NULL,NULL,NULL,false);
-               modify_player_state(state->opponentName,0,NULL,NULL,NULL,true);
+               modify_player_state(client.name,0,0,-1,NULL,false);
+               modify_player_state(state->opponentName,0,0,-1,NULL,true);
 
             }
          }
@@ -386,7 +386,7 @@ static void doCommend(const char *ch,Client client ,Client *clients, int actual)
       // Try to extract an integer from the string starting at position 2
       if (sscanf(ch + 2, "%d", &indexOfGame) == 1 && isValidGameIndexToJoinAsOb(indexOfGame)) {
          joinClientAsObserver(client,indexOfGame);
-         modify_player_state(client.name,4,NULL,NULL,NULL,false);
+         modify_player_state(client.name,4,NULL,-1,NULL,false);
          write_client(client.sock,"you are watching the game! waite for somone to play a move! \n if you want to leave type q [enter] \n");
       }
    }
@@ -420,8 +420,8 @@ static void doCommend(const char *ch,Client client ,Client *clients, int actual)
       printf("sr from the game from player! \n");
       State *result = search(client.name);
       if (result && result->state == 3){
-         modify_player_state(client.name,0,NULL,NULL,NULL,false);
-         modify_player_state(result->opponentName,0,NULL,NULL,NULL,false);
+         modify_player_state(client.name,0,NULL,-1,NULL,false);
+         modify_player_state(result->opponentName,0,NULL,-1,NULL,false);
          printf("sr from the game from player 2 ! \n");
          for(int i=0;i<actual;i++){
             if (strcmp(clients[i].name,result->opponentName)==0) {
@@ -442,7 +442,7 @@ static void doCommend(const char *ch,Client client ,Client *clients, int actual)
       printf("quit from observing the game from player! \n");
       State *result = search(client.name);
       if (result && result->state == 4){
-         modify_player_state(client.name,0,NULL,NULL,NULL,false);
+         modify_player_state(client.name,0,NULL,-1,NULL,false);
          write_client(client.sock,"write {commands} to get the full command list \n");
       }
       else{
@@ -455,8 +455,8 @@ static void doCommend(const char *ch,Client client ,Client *clients, int actual)
       State *result = search(client.name);
       if (result && result->state==2){
          printf("we are resetting player state to 0 ! \n");
-         modify_player_state(client.name,0,NULL,NULL,NULL,false);         
-         modify_player_state(result->opponentName,0,NULL,NULL,NULL,false);
+         modify_player_state(client.name,0,NULL,-1,NULL,false);         
+         modify_player_state(result->opponentName,0,NULL,-1,NULL,false);
          State *result = search(client.name);
          printf("player1: %s ;state%d \n" ,client.name, result->state);
          write_client(client.sock,"write {commands} to get the full command list \n");

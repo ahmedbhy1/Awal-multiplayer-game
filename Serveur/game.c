@@ -222,7 +222,7 @@ void showGameHistory(Client client, int indexOfGame) {
     strcat(message, temp);
 
     // Loop through the game history and add each turn to the message
-    for (int i = 1; i <= listOfGames[indexOfGame].lastGameTableIndex; i++) {
+    for (int i = 0; i <= listOfGames[indexOfGame].lastGameTableIndex; i++) {
         // Add game table details to the message
         showTurnGameTable(indexOfGame, client, i); // Assumes this sends messages to the client directly
     }
@@ -372,7 +372,7 @@ bool showPlayerWinIfGameOver(int indexOfGame,Client* clients,int actual){
         char ch[256] = "Game is over. ";
         int pointsByP1 = listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].seedsWonByP1;
         int pointsByP2 = listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].seedsWonByP2;
-
+        listOfGames[indexOfGame].isGameOver = true;
         bool isThereAWinner = false;
         char winner[50] = "";
 

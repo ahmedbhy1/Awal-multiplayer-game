@@ -334,6 +334,11 @@ static void doCommend(const char *ch,Client client ,Client *clients, int actual)
             else{
                write_client(client.sock,"Your Game Play is Not Valid! \n You can't choose Houses of Seeds 0 !\n");
             }
+            if (showPlayerWinIfGameOver(state->currentIndexOfGame,clients,actual)){
+               modify_player_state(client.name,0,NULL,NULL,NULL,false);
+               modify_player_state(state->opponentName,0,NULL,NULL,NULL,true);
+
+            }
          }
       } else {
          printf("Invalid index or input format. Ensure the index is between 0 and 6.\n");

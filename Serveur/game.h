@@ -11,4 +11,5 @@ void showCurrentGames(Client client);
 bool isValidGameIndexToJoinAsOb(int index);
 bool joinClientAsObserver(Client client,int indexOfGame);
 void surrenderFromGame(Client winner,int indexOfGame);
+bool showPlayerWinIfGameOver(int indexOfGame,Client* clients,int actual);
 #endif /* guard */

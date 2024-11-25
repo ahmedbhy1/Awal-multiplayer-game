@@ -79,8 +79,15 @@ Le projet est organisé dans les dossiers suivants :
      ```  
    - **Note :** Le joueur doit utiliser le même nom (**NomPlayer**) qu'avant la déconnexion.
 
+11. **Voir la historique d'une Partie**  
+   Permet à un joueur de voir les tours de jeu d'une partie deja finie.  
+   - **Commande :** `gh [index du jeu]`  
+   - **Usage :** Tapez `gh [index du jeu]` dans la terminal et appuyez sur **Entrée** pour voir les tour d'une partie deja terminée.  
 
-
+12. **Envoyer un message dans le chatroom d'une partiee**  
+   Permet à un joueur d'envoyer un message qui sera visible par son adversaire et les autres observateurs.  
+   - **Commande :** `mr [text du message]`  
+   - **Usage :** Tapez `mr [text du message]` dans la terminal et appuyez sur **Entrée** pour envoyer votre message.  
 
 
 ---

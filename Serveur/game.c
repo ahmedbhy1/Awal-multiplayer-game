@@ -141,9 +141,20 @@ bool joinClientAsObserver(Client client,int indexOfGame){
 }
 
 
-bool isGameOver(){
-   bool gameOver = false;
-   return gameOver;
+bool isGameOver(int indexOfGame){
+   int somme = 0;
+   for (int i=0;i<6;i++){
+      somme+=listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].table[0][i].numberOfSeeds;
+   }
+   if (somme==0)return true;
+   somme = 0;
+   for (int i=0;i<6;i++){
+      somme+=listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].table[1][i].numberOfSeeds;
+   }
+   if (somme==0)return true;
+   if(listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].seedsWonByP1>=25)return true;
+   if(listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].seedsWonByP2>=25)return true;
+   return false;
 }
 
 bool playGameTurn(Client player,int indexOfPlayer, int indexOfGame,int choosenDigit,char* opponentName,Client *clients,int actual){
@@ -243,9 +254,51 @@ bool playGameTurn(Client player,int indexOfPlayer, int indexOfGame,int choosenDi
 
 
    
-   isGameOver(indexOfGame);
+   
    showGameTable(indexOfGame,opponentName,clients,actual);
    return true;
+}
+
+
+bool showPlayerWinIfGameOver(int indexOfGame,Client* clients,int actual){
+      if (isGameOver(indexOfGame)) {
+        char ch[256] = "Game is over. ";
+        int pointsByP1 = listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].seedsWonByP1;
+        int pointsByP2 = listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].seedsWonByP2;
+
+        bool isThereAWinner = false;
+        char winner[50] = "";
+
+        if (pointsByP1 > pointsByP2) {
+            isThereAWinner = true;
+            strcpy(winner, listOfGames[indexOfGame].player1.name);
+        } else if (pointsByP1 < pointsByP2) {
+            isThereAWinner = true;
+            strcpy(winner, listOfGames[indexOfGame].player2.name);
+        }
+
+        if (!isThereAWinner) {
+            strcat(ch, "It's a draw.\n");
+        } else {
+            strcat(ch, winner);
+            strcat(ch, " wins the game.\n");
+        }
+        strcat(ch, "write {commands} to get the full command list \n");
+
+        printf("%s", ch); // Print the message to the console
+         Client listOfClientsToRecieveGameTable[MAX_RECIEVED_GAME_CLIENTS];
+         listOfClientsToRecieveGameTable[0] = listOfGames[indexOfGame].player1;
+         listOfClientsToRecieveGameTable[1] = listOfGames[indexOfGame].player2;
+         
+         for (int i = 0; i < listOfGames[indexOfGame].indexLastObserver; i++) {
+            listOfClientsToRecieveGameTable[i + 2] = listOfGames[indexOfGame].observers[i];
+         }
+         send_message_to_clients_from_server(listOfClientsToRecieveGameTable,listOfGames[indexOfGame].indexLastObserver+2,ch,clients,actual );
+         return true;
+      }
+      else{
+         return false;
+      }
 }
 
 

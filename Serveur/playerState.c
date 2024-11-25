@@ -64,7 +64,7 @@ State *search(const char *playerName) {
     return NULL; // playerName not found
 }
 
-int modify_player_state(const char *playerName, int *newState, int *newIndexOfGame, int *newPlayerIndex, char *newOpponentName,bool newIsPlayerTurn) {
+int modify_player_state(const char *playerName, int newState, int *newIndexOfGame, int *newPlayerIndex, char *newOpponentName,bool newIsPlayerTurn) {
     // Search for the player in the hash table
     State *playerState = search(playerName);
     printf("we can find the player_state! %d\n",playerState->state);
@@ -74,7 +74,7 @@ int modify_player_state(const char *playerName, int *newState, int *newIndexOfGa
     }
 
     // Modify the state only if a new value is provided
-    if (newState != NULL) {
+    if (newState != -1) {
         playerState->state = newState;
     }
     if (newIndexOfGame != NULL) {

@@ -317,8 +317,8 @@ static void doCommend(const char *ch,Client client ,Client *clients, int actual)
             printf("%s is the previous player turn \n",client.name);
             printf("%s its your turn \n",state->opponentName);
             if (valid){
-               modify_player_state(client.name,NULL,NULL,NULL,NULL,false);
-               modify_player_state(state->opponentName,NULL,NULL,NULL,NULL,true);
+               modify_player_state(client.name,-1,NULL,NULL,NULL,false);
+               modify_player_state(state->opponentName,-1,NULL,NULL,NULL,true);
             }
             else{
                write_client(client.sock,"Your Game Play is Not Valid! \n You can't choose Houses of Seeds 0 !\n");
@@ -353,6 +353,26 @@ static void doCommend(const char *ch,Client client ,Client *clients, int actual)
       State *result = search(client.name);
       if (result){
          requestOrAcceptGameFromPlayer(clients,client,result->opponentName,actual,"y");
+      }
+       
+   }
+
+   if (strcmp(ch, "n") == 0) {
+      printf("we are rejecting game from player! \n");
+      State *result = search(client.name);
+      if (result && result->state==2){
+         printf("we are resetting player state to 0 ! \n");
+         modify_player_state(client.name,0,NULL,NULL,NULL,false);         
+         modify_player_state(result->opponentName,0,NULL,NULL,NULL,false);
+         State *result = search(client.name);
+         printf("player1: %s ;state%d \n" ,client.name, result->state);
+         write_client(client.sock,"write {commands} to get the full command list \n");
+         for(int i=0;i<actual;i++){
+            if (strcmp(clients[i].name,result->opponentName)==0) {
+               write_client(clients[i].sock,"your game request is denied ! \nwrite {commands} to get the full command list \n");
+               break;
+            }
+         }
       }
        
    }

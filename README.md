@@ -72,7 +72,7 @@ Le projet est organisé dans les dossiers suivants :
    - **Usage :** Tapez `sr` dans la terminal et appuyez sur **Entrée** pour abandonner.  
 
 10. **Reconnexion Joueur ou Observateur**  
-   Si un joueur est déconnecté pendant une partie, il peut se reconnecter et retrouver la partie active en cours, à condition que l'autre joueur soit toujours connecté.  
+   Si un joueur ou un observateur est déconnecté pendant une partie, il peut se reconnecter et retrouver la partie en cours, à condition qu'il se reconnecte avec le même nom d'utilisateur qu'il a utilisé la    première fois 
    - **Commande pour la reconnexion :**  
      ```bash
      client [ipAddress] [NomPlayer]

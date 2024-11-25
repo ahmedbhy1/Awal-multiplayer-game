@@ -234,8 +234,8 @@ static void getCommendList(const char *ch, Client client, Client *clients, int a
    char message[BUF_SIZE] = "";  // Initialize message as an empty string
 
    // Safely append strings to the message
-   if (strlen(message) + strlen("get the list of Players that are not in a game: 1\n") < BUF_SIZE) {
-      strcat(message, "get the list of Players that are not in a game: 1\n");
+   if (strlen(message) + strlen("get the list of Players (with their status): 1\n") < BUF_SIZE) {
+      strcat(message, "get the list of Players (with their status): 1\n");
    }
 
    // Safely append strings to the message
@@ -244,13 +244,13 @@ static void getCommendList(const char *ch, Client client, Client *clients, int a
    }
 
    // Safely append strings to the message
-   if (strlen(message) + strlen("get the list of Games : g\n") < BUF_SIZE) {
-      strcat(message, "get the list of Games : g\n");
+   if (strlen(message) + strlen("get the list of Games (with their status) : g\n") < BUF_SIZE) {
+      strcat(message, "get the list of Games (with their status) : g\n");
    }
 
    // Safely append strings to the message
-   if (strlen(message) + strlen("join a Game as an observer :o {index of active game to join}\n") < BUF_SIZE) {
-      strcat(message, "join a Game as an observer :o {index of active game to join}\n");
+   if (strlen(message) + strlen("join a Game as an observer (the game should be active) :o {index of active game to join}\n") < BUF_SIZE) {
+      strcat(message, "join a Game as an observer (the game should be active) :o {index of active game to join}\n");
    }
 
    // Safely append strings to the message
@@ -264,8 +264,13 @@ static void getCommendList(const char *ch, Client client, Client *clients, int a
    }
 
    // Safely append strings to the message
-   if (strlen(message) + strlen("show game history : gh [index_of_game]\n") < BUF_SIZE) {
-      strcat(message, "show game history : gh [index_of_game]\n");
+   if (strlen(message) + strlen("show game history (the game should be terminated) : gh [index_of_game]\n") < BUF_SIZE) {
+      strcat(message, "show game history (the game should be terminated) : gh [index_of_game]\n");
+   }
+
+   // Safely append strings to the message
+   if (strlen(message) + strlen("send a message in your game room (will be seen by other player and observers) : mr [your_message]\n") < BUF_SIZE) {
+      strcat(message, "send a message in your game room (will be seen by other player and observers) : mr [your_message]\n\n");
    }
 
    // Send the message to the client (assuming client.sock is the socket)
@@ -364,11 +369,17 @@ static void doCommend(const char *ch,Client client ,Client *clients, int actual)
       printf("we are requesting game to player! \n");
       requestOrAcceptGameFromPlayer(clients,client,playerName,actual,"");
    }
-   if (strncmp(ch, "m ", 2) == 0) {  // Check if the string starts with "2 " or with y
-      //char playerMessage[256];
-      //sscanf(ch + 2, "%s", playerMessage);  // Extract player name from the string starting after "2 "
-      //State *result = search(client.name);
-      //sendPlyerMassageToTheGameChat(clients,client,playerName,actual,"");
+   if (strncmp(ch, "mr ", 2) == 0) {  // Check if the string starts with "2 " or with y
+      char playerMessage[500];
+      sscanf(ch + 3, "%[^\n]", playerMessage); // Extract player name from the string starting after "2 "
+      State *player = search(client.name);
+      if (player->state == 0){
+         write_client(client.sock,"you should be a player or observer to send a message in a game chat room \n");
+      }
+      else{
+         printf("are we showing the totality of the message ? %s \n",playerMessage);
+         sendPlyerMassageToTheGameChat(player->currentIndexOfGame,clients,client,actual,playerMessage);
+      }
    }
    if (strncmp(ch, "o ", 2) == 0) {  // Check if the string starts with "2 " or with y
       int indexOfGame;

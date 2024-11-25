@@ -247,6 +247,23 @@ bool isValidGameIndexToGetHistoryFrom(int index){
    return true;
 }
 
+void sendPlyerMassageToTheGameChat(int indexOfGame,Client* clients,Client client,int actual,char* playerMessage){
+   char message[520]; // Fixed-size buffer for the message
+    // Format the message into the buffer
+    snprintf(message, sizeof(message), "%s is sending a message: %s\n", client.name, playerMessage);
+    
+    
+   Client listOfClientsToRecieveGameTable[MAX_RECIEVED_GAME_CLIENTS];
+   listOfClientsToRecieveGameTable[0] = listOfGames[indexOfGame].player1;
+   listOfClientsToRecieveGameTable[1] = listOfGames[indexOfGame].player2;
+   
+   for (int i = 0; i < listOfGames[indexOfGame].indexLastObserver; i++) {
+      listOfClientsToRecieveGameTable[i + 2] = listOfGames[indexOfGame].observers[i];
+   }
+   send_message_to_clients_from_server(listOfClientsToRecieveGameTable,listOfGames[indexOfGame].indexLastObserver+2,message,clients,actual );
+
+}
+
 bool playGameTurn(Client player,int indexOfPlayer, int indexOfGame,int choosenDigit,char* opponentName,Client *clients,int actual){
    // index of the player represants 0 or 1 -> the side in wich the player play in !
    int nomberOfSeeds = listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].table[indexOfPlayer][choosenDigit].numberOfSeeds;

@@ -14,4 +14,5 @@ bool joinClientAsObserver(Client client,int indexOfGame);
 void surrenderFromGame(Client winner,int indexOfGame);
 bool showPlayerWinIfGameOver(int indexOfGame,Client* clients,int actual);
 void showGameHistory(Client client,int indexOfGame);
+void sendPlyerMassageToTheGameChat(int indexOfGame,Client* clients,Client client,int actual,char* playerMessage);
 #endif /* guard */

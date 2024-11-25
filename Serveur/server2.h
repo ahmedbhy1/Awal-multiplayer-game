@@ -46,8 +46,7 @@ static void send_message_to_all_clients(Client *clients, Client client, int actu
 static void remove_client(Client *clients, int to_remove, int *actual);
 static void print_client_names(Client *clients, int actual);
 static void clear_clients(Client *clients, int actual);
-static void doCommend(const char *ch,Client client ,Client *clients, int actual);
-static void send_message_to_clients_from_server(Client *clients, int actual, const char *buffer);
+static void doCommend(const char *ch,Client client ,Client *clients, int actual);static void send_message_to_clients_from_server(Client *clients, int actual, const char *buffer,Client *allClients,int actualAll);
 static void write_client(SOCKET sock, const char *buffer);
 
 #endif /* guard */

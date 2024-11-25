@@ -241,9 +241,20 @@ static void getCommendList(const char *ch, Client client, Client *clients, int a
    }
 
    // Safely append strings to the message
-   if (strlen(message) + strlen("join a Game as an observer o {index of active game to join}\n") < BUF_SIZE) {
-      strcat(message, "join a Game as an observer o {index of active game to join}\n");
+   if (strlen(message) + strlen("join a Game as an observer :o {index of active game to join}\n") < BUF_SIZE) {
+      strcat(message, "join a Game as an observer :o {index of active game to join}\n");
    }
+
+   // Safely append strings to the message
+   if (strlen(message) + strlen("quit a Game as an observer :q\n") < BUF_SIZE) {
+      strcat(message, "quit a Game as an observer :q\n");
+   }
+
+   // Safely append strings to the message
+   if (strlen(message) + strlen("surrender from a Game as a player :sr\n") < BUF_SIZE) {
+      strcat(message, "surrender from a Game as a player :sr\n");
+   }
+
    // Send the message to the client (assuming client.sock is the socket)
    write_client(client.sock, message);
 }
@@ -355,6 +366,40 @@ static void doCommend(const char *ch,Client client ,Client *clients, int actual)
          requestOrAcceptGameFromPlayer(clients,client,result->opponentName,actual,"y");
       }
        
+   }
+
+   if (strcmp(ch, "sr") == 0) {
+      printf("sr from the game from player! \n");
+      State *result = search(client.name);
+      if (result && result->state == 3){
+         modify_player_state(client.name,0,NULL,NULL,NULL,false);
+         modify_player_state(result->opponentName,0,NULL,NULL,NULL,false);
+         printf("sr from the game from player 2 ! \n");
+         for(int i=0;i<actual;i++){
+            if (strcmp(clients[i].name,result->opponentName)==0) {
+
+               printf("sr from the game from player 3 ! \n");
+               surrenderFromGame(clients[i],result->currentIndexOfGame);      
+               write_client(clients[i].sock,"Congrats ! you win the game your opponant surrnadered ! \n write {commands} to get the full command list \n");
+            }
+         }
+         write_client(client.sock,"you lost the game (you abandonned the game)! \n write {commands} to get the full command list \n");
+      }
+      else{
+         write_client(client.sock,"you need to be observer first so that you can quit the game \n");
+      }   
+   }
+
+   if (strcmp(ch, "q") == 0) {
+      printf("quit from observing the game from player! \n");
+      State *result = search(client.name);
+      if (result && result->state == 4){
+         modify_player_state(client.name,0,NULL,NULL,NULL,false);
+         write_client(client.sock,"write {commands} to get the full command list \n");
+      }
+      else{
+         write_client(client.sock,"you need to be observer first so that you can quit the game \n");
+      }   
    }
 
    if (strcmp(ch, "n") == 0) {

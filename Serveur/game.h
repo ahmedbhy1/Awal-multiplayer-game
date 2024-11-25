@@ -10,5 +10,5 @@ void showGameTable(int indexOfGame,char* nextPlayerName);
 void showCurrentGames(Client client);
 bool isValidGameIndexToJoinAsOb(int index);
 bool joinClientAsObserver(Client client,int indexOfGame);
-
+void surrenderFromGame(Client winner,int indexOfGame);
 #endif /* guard */

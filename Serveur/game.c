@@ -32,6 +32,7 @@ struct Game {
    Client observers[MAX_OBSERVERS];
    int indexLastObserver;
    bool isGameOver;
+   bool isItADraw;
    Client winner;
    struct GameTable gameTables[MAX_GAMETABLES];
    int lastGameTableIndex;
@@ -89,6 +90,44 @@ void showGameTable(int indexOfGame,char* nextPlayerName,Client *clients,int actu
     send_message_to_clients_from_server(listOfClientsToRecieveGameTable,listOfGames[indexOfGame].indexLastObserver+2,message,clients,actual );
 }
 
+
+void showTurnGameTable(int indexOfGame, Client client, int indexOfTableGame) {
+    char message[1024] = ""; // Ensure the buffer is large enough for the full message
+    char temp[256];          // Temporary buffer for individual parts of the message
+
+    // Format the header message
+    snprintf(temp, sizeof(temp), "*** we are showing Game Table number %d *** \n", indexOfTableGame);
+    strcat(message, temp);
+
+    char gameTableMessage[512] = ""; // Buffer to construct the game table message
+    for (int i = 0; i < 2; i++) {
+        for (int j = 0; j < 6; j++) {
+            snprintf(temp, sizeof(temp), "%d ", listOfGames[indexOfGame].gameTables[indexOfTableGame].table[i][j].numberOfSeeds);
+            strcat(gameTableMessage, temp);
+        }
+
+        if (i == 0) {
+            snprintf(temp, sizeof(temp), "  %s is getting %d seeds.", 
+                     listOfGames[indexOfGame].player1.name, 
+                     listOfGames[indexOfGame].gameTables[indexOfTableGame].seedsWonByP1);
+        } else {
+            snprintf(temp, sizeof(temp), "  %s is getting %d seeds.", 
+                     listOfGames[indexOfGame].player2.name, 
+                     listOfGames[indexOfGame].gameTables[indexOfTableGame].seedsWonByP2);
+        }
+        strcat(gameTableMessage, temp);
+        strcat(gameTableMessage, "\n");
+    }
+
+    strcat(message, gameTableMessage);
+
+    // Send the message to the client
+    write_client(client.sock, message);
+    // Uncomment and implement this if needed
+    // send_message_to_clients_from_server(listOfClientsToRecieveGameTable, listOfGames[indexOfGame].indexLastObserver + 2, message, clients, actual);
+}
+
+
 void addGameObserver(Client observer){
    listOfGames[indexOfGame].observers[listOfGames[indexOfGame].indexLastObserver] = observer;
    listOfGames[indexOfGame].indexLastObserver+=1;
@@ -109,20 +148,25 @@ int initiateGame(Client player1,Client player2,char* playerName,Client *clients,
    return indexOfGame ;
 }
 
-void showCurrentGames(Client client) {
+void showGames(Client client) {
     char message[MAX_MESSAGE_LENGTH];
     message[0] = '\0'; // Initialize message as an empty string
 
     for (int i = 1; i <= indexOfGame; i++) {
-        if (!listOfGames[i].isGameOver) {
+        
             char gameInfo[200];
             snprintf(gameInfo, sizeof(gameInfo), 
-                     "Game index: %d | Game Players: %s VS %s\n", 
+                     "Game index: %d | Game Players: %s VS %s", 
                      i, 
                      listOfGames[i].player1.name, 
                      listOfGames[i].player2.name);
             strcat(message, gameInfo);
-        }
+            if (!listOfGames[i].isGameOver) {
+               strcat(message, " (in progress) \n");
+            }
+            else{
+               strcat(message, " (game is over) \n");
+            }
     }
 
     write_client(client.sock, message);
@@ -155,6 +199,69 @@ bool isGameOver(int indexOfGame){
    if(listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].seedsWonByP1>=25)return true;
    if(listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].seedsWonByP2>=25)return true;
    return false;
+}
+
+void saveGameTurn(int indexOfGame){
+   listOfGames[indexOfGame].lastGameTableIndex+=1;
+   listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].seedsWonByP1 = listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex - 1].seedsWonByP1;
+   listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].seedsWonByP2 = listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex - 1].seedsWonByP2;
+   for (int i=0;i<2;i++){
+      for(int j =0;j<6;j++){
+         printf("old table value :%d | new table value :%d \n",listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].table[i][j],listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex-1].table[i][j]);
+         listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex].table[i][j] = listOfGames[indexOfGame].gameTables[listOfGames[indexOfGame].lastGameTableIndex-1].table[i][j];
+      }
+   }
+   printf("each step!  %d \n",listOfGames[indexOfGame].lastGameTableIndex);
+}
+
+void showGameHistory(Client client, int indexOfGame) {
+    char message[1024] = ""; // Buffer to hold the history message
+    char temp[256];          // Temporary buffer for constructing each line
+
+    // Format the header message
+    strcat(message, temp);
+
+    // Loop through the game history and add each turn to the message
+    for (int i = 1; i <= listOfGames[indexOfGame].lastGameTableIndex; i++) {
+        // Add game table details to the message
+        showTurnGameTable(indexOfGame, client, i); // Assumes this sends messages to the client directly
+    }
+   char turnMessage[512] = ""; // Buffer for the turn-specific message
+
+    if(!listOfGames[indexOfGame].isItADraw){
+      printf("there is a winner ! \n");
+      snprintf(turnMessage, sizeof(turnMessage), "\n %s Is The Winner :\n", listOfGames[indexOfGame].winner.name);
+      strcat(message, turnMessage);
+    }
+    else{
+      printf("there is a draw ! \n");
+      snprintf(turnMessage, sizeof(turnMessage), "\n %s The Game ends with A Draw :\n");
+      strcat(message, turnMessage);
+    }
+
+    // Send the complete history message to the client
+    write_client(client.sock, message);
+}
+bool isValidGameIndexToGetHistoryFrom(int index){
+   if (index>indexOfGame || !listOfGames[index].isGameOver)return false;
+   return true;
+}
+
+void sendPlyerMassageToTheGameChat(int indexOfGame,Client* clients,Client client,int actual,char* playerMessage){
+   char message[520]; // Fixed-size buffer for the message
+    // Format the message into the buffer
+    snprintf(message, sizeof(message), "%s is sending a message: %s\n", client.name, playerMessage);
+    
+    
+   Client listOfClientsToRecieveGameTable[MAX_RECIEVED_GAME_CLIENTS];
+   listOfClientsToRecieveGameTable[0] = listOfGames[indexOfGame].player1;
+   listOfClientsToRecieveGameTable[1] = listOfGames[indexOfGame].player2;
+   
+   for (int i = 0; i < listOfGames[indexOfGame].indexLastObserver; i++) {
+      listOfClientsToRecieveGameTable[i + 2] = listOfGames[indexOfGame].observers[i];
+   }
+   send_message_to_clients_from_server(listOfClientsToRecieveGameTable,listOfGames[indexOfGame].indexLastObserver+2,message,clients,actual );
+
 }
 
 bool playGameTurn(Client player,int indexOfPlayer, int indexOfGame,int choosenDigit,char* opponentName,Client *clients,int actual){
@@ -254,7 +361,7 @@ bool playGameTurn(Client player,int indexOfPlayer, int indexOfGame,int choosenDi
 
 
    
-   
+   saveGameTurn(indexOfGame);
    showGameTable(indexOfGame,opponentName,clients,actual);
    return true;
 }
@@ -272,14 +379,18 @@ bool showPlayerWinIfGameOver(int indexOfGame,Client* clients,int actual){
         if (pointsByP1 > pointsByP2) {
             isThereAWinner = true;
             strcpy(winner, listOfGames[indexOfGame].player1.name);
+            listOfGames[indexOfGame].winner = listOfGames[indexOfGame].player1;
         } else if (pointsByP1 < pointsByP2) {
             isThereAWinner = true;
             strcpy(winner, listOfGames[indexOfGame].player2.name);
+            listOfGames[indexOfGame].winner = listOfGames[indexOfGame].player2;
         }
 
         if (!isThereAWinner) {
+            listOfGames[indexOfGame].isItADraw = true;
             strcat(ch, "It's a draw.\n");
         } else {
+            listOfGames[indexOfGame].isItADraw = false;
             strcat(ch, winner);
             strcat(ch, " wins the game.\n");
         }
@@ -305,4 +416,5 @@ bool showPlayerWinIfGameOver(int indexOfGame,Client* clients,int actual){
 void surrenderFromGame(Client winner,int indexOfGame){
    listOfGames[indexOfGame].isGameOver = true;   
    listOfGames[indexOfGame].winner = winner;
+   listOfGames[indexOfGame].isItADraw = false;
 }

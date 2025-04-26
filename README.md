@@ -1,157 +1,144 @@
+# **Project: Network Awalé Game**
 
-# **Projet : Jeu Awalé en Réseau**
+## **Introduction to Awalé**
+Awalé is a traditional African board game belonging to the family of sowing games. It is played on a board with two rows of six holes called "houses," with a certain number of seeds distributed among these houses.
 
-## **Participants**
-- Ahmed BEL HADJ YOUSSEF
-- Mateo CARVAJAL SANCHEZ
+### **Objective of the Game:**
+The goal is to collect more seeds than your opponent. Players, taking turns, choose a house on their side of the board and distribute its seeds into the following houses, following a circular movement. When a player "sows" the seeds, they can capture the opponent’s seeds under certain conditions. Awalé is both a strategy and thinking game.
 
-## **Introduction à l'Awalé**
-L'Awalé est un jeu de société traditionnel africain appartenant à la famille des jeux de semailles. Il se joue sur un plateau comportant deux rangées de six trous appelés "maisons", avec un certain nombre de graines réparties dans ces maisons. 
-
-### **Objectif du jeu :**
-Le but est de collecter plus de graines que son adversaire. Les joueurs, à tour de rôle, choisissent une maison de leur côté du plateau et distribuent ses graines dans les maisons suivantes, selon un mouvement circulaire. Lorsqu'un joueur "sème" les graines, il peut capturer celles de l'adversaire sous certaines conditions. L'Awalé est à la fois un jeu de stratégie et de réflexion.
-
-Pour plus d'informations, vous pouvez consulter l'article détaillé sur l'Awalé :  
+For more information, you can consult the detailed article about Awalé:  
 [https://fr.wikipedia.org/wiki/Awal%C3%A9](https://fr.wikipedia.org/wiki/Awal%C3%A9)
 
-Ce projet implémente l'Awalé dans un environnement client-serveur, permettant à deux joueurs de s'affronter en ligne ou à d'autres utilisateurs de rejoindre les parties en tant qu'observateurs.
+This project implements Awalé in a client-server environment, allowing two players to compete online or other users to join games as spectators.
 
 ---
 
-## **Structure du Projet**
+## **Project Structure**
 
-Le projet est organisé dans les dossiers suivants :
-- **Client :** Contient le code source pour le client.  
-- **Serveur :** Contient le code source pour le serveur.  
+The project is organized into the following folders:
+- **Client:** Contains the source code for the client.
+- **Server:** Contains the source code for the server.
 
 ---
 
-## **Fonctionnalités du Client**
+## **Client Features**
 
-### **Commandes Disponibles**
+### **Available Commands**
 1. **`commands`**  
-   Affiche la liste des commandes disponibles pour le client.  
-   - **Commande :** `commands`  
+   Displays the list of available client commands.
 
 2. **`getPlayersList`**  
-   Permet de voir la liste des joueurs actuellement connectés au serveur.  
-   - **Commande :** `1`  
+   Allows you to see the list of players currently connected to the server.  
+   - **Command:** `1`
 
 3. **`request Starting Game with Player`**  
-   Permet de demander à un autre joueur de commencer une partie.  
-   - **Commande :** `2 [NomPlayer]`  
-   - Exemple : `2 Ahmed`
+   Allows requesting another player to start a game.  
+   - **Command:** `2 [PlayerName]`  
+   - Example: `2 Ahmed`
 
 4. **`get The list of active games`**  
-   Affiche une liste des jeux actifs et des joueurs impliqués dans ces parties.  
-   - **Commande :** `ag`  
+   Displays a list of active games and the players involved.  
+   - **Command:** `ag`
 
 5. **`reject/accept game`**  
-   Permet au joueur de rejeter ou d'accepter une demande de jeu. Si accepté, la partie commence.  
-   - **Commande :** Lorsqu'une demande est reçue, tapez `y` pour accepter ou `n` pour refuser.  
+   Allows the player to reject or accept a game request. If accepted, the game starts.  
+   - **Command:** When a request is received, type `y` to accept or `n` to reject.
 
 6. **`join game as an observer`**  
-   Permet à l'utilisateur de rejoindre une partie active en tant qu'observateur.  
-   - **Commande :** `o [index du jeu]`  
-   - Exemple : `o 1`  
+   Allows the user to join an active game as a spectator.  
+   - **Command:** `o [game index]`  
+   - Example: `o 1`
 
 7. **`play turn Awalé`**  
-   Permet au joueur de sélectionner une "maison" (case) pour jouer son tour dans le jeu Awalé.  
-   - **Commande :** `p [numéro de la maison (1-6)]`  
-   - Exemple : `p 3`  
-   - **Note :** Les "maisons" contenant 0 graines ne peuvent pas être choisies.
+   Allows the player to select a "house" (slot) to play their turn.  
+   - **Command:** `p [house number (1-6)]`  
+   - Example: `p 3`  
+   - **Note:** Houses with 0 seeds cannot be selected.
 
-8. **quitter la Partie**  
-   Permet à l'observateur d'arreter de regarder une partie active.  
-   - **Commande :** `q`  
-   - **Usage :** Tapez `q` dans la terminal et appuyez sur **Entrée** pour quitter.  
+8. **Quit the Game**  
+   Allows a spectator to stop watching an active game.  
+   - **Command:** `q`
 
-9. **abandonner la Partie**  
-   Permet à un joueur d'abondonner une partie active.  
-   - **Commande :** `sr`  
-   - **Usage :** Tapez `sr` dans la terminal et appuyez sur **Entrée** pour abandonner.  
+9. **Surrender the Game**  
+   Allows a player to surrender an active game.  
+   - **Command:** `sr`
 
-10. **Reconnexion Joueur ou Observateur**  
-   Si un joueur ou un observateur est déconnecté pendant une partie, il peut se reconnecter et retrouver la partie en cours, à condition qu'il se reconnecte avec le même nom d'utilisateur qu'il a utilisé la    première fois 
-   - **Commande pour la reconnexion :**  
-     ```bash
-     client [ipAddress] [NomPlayer]
-     ```  
-   - **Note :** Le joueur doit utiliser le même nom (**NomPlayer**) qu'avant la déconnexion.
+10. **Player or Observer Reconnection**  
+    If a player or observer gets disconnected, they can reconnect and resume the game, provided they use the same username.  
+    - **Command:**  
+      ```bash
+      client [ipAddress] [PlayerName]
+      ```
 
-11. **Voir la historique d'une Partie**  
-   Permet à un joueur de voir les tours de jeu d'une partie deja finie.  
-   - **Commande :** `gh [index du jeu]`  
-   - **Usage :** Tapez `gh [index du jeu]` dans la terminal et appuyez sur **Entrée** pour voir les tour d'une partie deja terminée.  
+11. **View the History of a Game**  
+    Allows a player to view the history of a finished game.  
+    - **Command:** `gh [game index]`
 
-12. **Envoyer un message dans le chatroom d'une partiee**  
-   Permet à un joueur d'envoyer un message qui sera visible par son adversaire et les autres observateurs.  
-   - **Commande :** `mr [text du message]`  
-   - **Usage :** Tapez `mr [text du message]` dans la terminal et appuyez sur **Entrée** pour envoyer votre message.  
-
+12. **Send a Message in a Game Chatroom**  
+    Allows a player to send a message visible to the opponent and spectators.  
+    - **Command:** `mr [message text]`
 
 ---
 
-## **Fonctionnalités du Serveur**
+## **Server Features**
 
-1. **Gestion des Connexions :**  
-   Gère plusieurs connexions simultanées pour les joueurs et les observateurs.  
+1. **Connection Management:**  
+   Manages multiple simultaneous connections for players and spectators.
 
-2. **Gestion des Jeux Actifs :**  
-   Gère et met à jour en temps réel l'état des parties actives, y compris les mouvements des joueurs et les connexions des observateurs.  
+2. **Active Games Management:**  
+   Manages and updates active games in real time.
 
-3. **Validation des Mouvements :**  
-   Vérifie que les mouvements effectués par les joueurs sont valides et conformes aux règles du jeu Awalé.  
+3. **Move Validation:**  
+   Validates that player moves comply with Awalé rules.
 
-4. **Support pour les Observateurs :**  
-   Permet aux utilisateurs de suivre les parties en temps réel sans participer.  
+4. **Support for Spectators:**  
+   Allows users to observe games in real time.
 
-5. **Messages d'Erreur et d'État :**  
-   Gère les erreurs, telles que des commandes invalides ou des mouvements non autorisés, et fournit des messages clairs aux utilisateurs.  
+5. **Error and Status Messages:**  
+   Handles errors and provides clear messages to users.
 
-6. **Restrictions du Nom**  
-    - Le nom d'un client doit être unique. Si un joueur ou observateur tente de se connecter avec un nom déjà utilisé par un client actif, le serveur refusera la connexion.  
+6. **Name Restrictions**  
+   - Each client must have a unique name. Duplicate names will be rejected.
+
 ---
 
-## **Instructions de Compilation**
+## **Compilation Instructions**
 
-1. **Extraire les Fichiers :**  
-   Extrayez le contenu de l'archive `.zip`.  
+1. **Extract the Files:**  
+   Extract the `.zip` archive.
 
-2. **Compiler le Serveur :**  
-   Accédez au dossier `Serveur` et exécutez :  
+2. **Compile the Server:**  
    ```bash
    gcc playerState.c game.c server2.c -o server
-   ```  
+   ```
 
-3. **Compiler le Client :**  
-   Accédez au dossier `Client` et exécutez :  
+3. **Compile the Client:**  
    ```bash
    gcc client2.c -o client
-   ```  
+   ```
 
 ---
 
-## **Instructions d'Exécution**
+## **Execution Instructions**
 
-1. **Lancer le Serveur :**  
+1. **Start the Server:**  
    ```bash
    ./server
-   ```  
+   ```
 
-2. **Lancer le Client :**  
+2. **Start the Client:**  
    ```bash
-   ./client [ipAddress] [NomPlayer]
-   ```  
-   - **ipAddress :** Adresse IP du serveur.  
-   - **NomPlayer :** Nom du joueur ou de l'observateur.  
+   ./client [ipAddress] [PlayerName]
+   ```
+   - **ipAddress:** Server's IP address.  
+   - **PlayerName:** Name of the player or observer.
 
 ---
 
-## **Notes Supplémentaires**
+## **Additional Notes**
 
-- Les joueurs et observateurs doivent utiliser le même nom (**NomPlayer**) pour se reconnecter après une déconnexion.  
-- Les mises à jour des parties actives et des plateaux sont reflétées en temps réel, mais les observateurs doivent attendre qu'un joueur effectue un mouvement pour voir le plateau actualisé.  
-- Le serveur doit être lancé avant les clients.  
+- Players and spectators must reconnect with the same **PlayerName** to resume a session.
+- Game updates and boards are reflected in real-time for players. Spectators see updates after player moves.
+- Always start the server before starting any clients.
 
 ---
